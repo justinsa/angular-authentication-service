@@ -1,32 +1,33 @@
 (function (window, _, angular, undefined) {
   'use strict';
-  var _configuration = {};
-  var service = angular.module('authentication.service', ['local.storage']);
-  service.controller('SecurityController', ['$authentication', '$location', '$scope', function ($authentication, $location, $scope) {
+  var module = angular.module('authentication.service', ['local.storage']);
+  module.controller('SecurityController', ['$authentication', '$location', '$scope', function ($authentication, $location, $scope) {
     $scope.permit = function () {
       if (!$authentication.allowed(arguments)) {
-        $location.path(_configuration.notPermittedRedirectPath);
+        $location.path($authentication.getConfig().notPermittedRedirectPath);
       }
     };
 
     if (!$authentication.isAuthenticated()) {
-      $location.path(_configuration.unauthenticatedRedirectPath);
+      $location.path($authentication.getConfig().unauthenticatedRedirectPath);
     }
   }]);
-  service.provider('$authentication', function() {
+  module.provider('$authentication', function() {
     /**
      * call this function to provide configuration options to the service.
      */
-    this.configure = function (configuration) {
-      _configuration = _.defaults(configuration, {
+     var configuration = {};
+
+    this.configure = function (configurationOpts) {
+      configuration = _.defaults(configurationOpts, {
         profileStorageKey: 'user.profile',
         notPermittedRedirectPath: '/',
         unauthenticatedRedirectPath: '/',
         userProperty: 'roles',
         validationFunction: function (user, roles) {
-          return _.has(user, _configuration.userProperty) &&
+          return _.has(user, configuration.userProperty) &&
             (_.find(roles, function (role) {
-              return _.contains(user[_configuration.userProperty], role);
+              return _.contains(user[configuration.userProperty], role);
             }) !== undefined);
         }
       });
@@ -39,7 +40,7 @@
          * returns true if there is a user profile in storage.
          */
         isAuthenticated: function() {
-          return $store.has(_configuration.profileStorageKey);
+          return $store.has(configuration.profileStorageKey);
         },
 
         /**
@@ -48,7 +49,7 @@
          * example if you need to pass through details of the user that was logged in.
          */
         loginConfirmed: function (data) {
-          $store.set(_configuration.profileStorageKey, data);
+          $store.set(configuration.profileStorageKey, data);
           $rootScope.$broadcast('event:auth-loginConfirmed', data);
         },
 
@@ -63,7 +64,7 @@
          * call this function to indicate that unauthentication was successful.
          */
         logoutConfirmed: function() {
-          $store.remove(_configuration.profileStorageKey);
+          $store.remove(configuration.profileStorageKey);
           $rootScope.$broadcast('event:auth-logoutConfirmed');
         },
 
@@ -73,7 +74,7 @@
          * 'anonymous' is a special case role that will return true for an unauthenticated user.
          */
         allowed: function() {
-          var authenticated = $store.has(_configuration.profileStorageKey);
+          var authenticated = $store.has(configuration.profileStorageKey);
           // handle 'all' and 'anonymous' special cases
           if (arguments.length === 1) {
             switch (arguments[0]) {
@@ -86,15 +87,22 @@
           if (arguments.length === 0 || !authenticated) {
             return false;
           }
-          var user = $store.get(_configuration.profileStorageKey);
-          return _configuration.validationFunction(user, arguments);
+          var user = $store.get(configuration.profileStorageKey);
+          return configuration.validationFunction(user, arguments);
         },
 
         /**
          * call this function to retrieve the existing user profile from storage.
          */
         profile: function() {
-          return $store.get(_configuration.profileStorageKey);
+          return $store.get(configuration.profileStorageKey);
+        },
+
+        /**
+         * call this function to get the configuration options
+         */
+        getConfig: function() {
+          return configuration;
         }
       };
     }];
