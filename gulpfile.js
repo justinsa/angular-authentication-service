@@ -2,7 +2,7 @@
 var gulp = require('gulp');
 var jshint = require('gulp-jshint');
 gulp.task('js:lint', function() {
-  return gulp.src('./ng-authentication-service.js')
+  return gulp.src('./angular-authentication-service.js')
     .pipe(jshint())
     .pipe(jshint.reporter('default'));
 });
