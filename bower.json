@@ -4,7 +4,7 @@
   "dependencies": {
     "angular": "1.2.16",
     "angular-cookies": "1.2.16",
-    "angular-local-storage-factory": "https://github.com/EQCO/Angular-localStorage.git",
+    "angular-local-storage-service": "https://github.com/EQCO/angular-local-storage-service.git",
     "jquery": "2.1.0",
     "underscore": "1.6.0",
     "underscore.string": "2.3.0"
