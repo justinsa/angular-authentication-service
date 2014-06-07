@@ -54,6 +54,17 @@
         },
 
         /**
+         * call this function to check whether a current user is logged in
+         * and to broadcast the auth-loginConfirmed event, if so. This allows
+         * directives to load an initial state without duplicating code.
+         */
+        checkAndBroadcastLoginConfirmed: function() {
+          if (this.isAuthenticated()) {
+            $rootScope.$broadcast('event:auth-loginConfirmed', this.profile());
+          }
+        },
+
+        /**
          * call this function to indicate that authentication is required.
          */
         loginRequired: function() {
