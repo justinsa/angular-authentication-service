@@ -3,7 +3,7 @@
   var module = angular.module('authentication.service', ['local.storage']);
   module.controller('SecurityController', ['$authentication', '$location', '$scope', function ($authentication, $location, $scope) {
     $scope.permit = function () {
-      if (!$authentication.allowed(arguments)) {
+      if (!$authentication.allowed.apply($authentication, _.toArray(arguments))) {
         $location.path($authentication.getConfig().notPermittedRedirectPath);
       }
     };
@@ -54,6 +54,17 @@
         },
 
         /**
+         * call this function to check whether a current user is logged in
+         * and to broadcast the auth-loginConfirmed event, if so. This allows
+         * directives to load an initial state without duplicating code.
+         */
+        checkAndBroadcastLoginConfirmed: function() {
+          if (this.isAuthenticated()) {
+            $rootScope.$broadcast('event:auth-loginConfirmed', this.profile());
+          }
+        },
+
+        /**
          * call this function to indicate that authentication is required.
          */
         loginRequired: function() {
@@ -74,21 +85,23 @@
          * 'anonymous' is a special case role that will return true for an unauthenticated user.
          */
         allowed: function() {
+          var args = _.toArray(arguments);
           var authenticated = $store.has(configuration.profileStorageKey);
           // handle 'all' and 'anonymous' special cases
-          if (arguments.length === 1) {
-            switch (arguments[0]) {
-              case 'all' : return authenticated;
-              case 'anonymous' : return !authenticated;
-              default: break;
+          if (args.length === 1) {
+            if (args[0].toUpperCase() === 'ALL') {
+              return authenticated;
+            }
+            if (args[0].toUpperCase() === 'ANONYMOUS') {
+              return !authenticated;
             }
           }
           // handle generic case of a list of defined roles
-          if (arguments.length === 0 || !authenticated) {
+          if (args.length === 0 || !authenticated) {
             return false;
           }
           var user = $store.get(configuration.profileStorageKey);
-          return configuration.validationFunction(user, arguments);
+          return configuration.validationFunction(user, args);
         },
 
         /**
