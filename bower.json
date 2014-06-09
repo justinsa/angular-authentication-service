@@ -2,9 +2,9 @@
   "name": "ng-authentication-service",
   "version": "0.0.1",
   "dependencies": {
-    "angular": "1.2.16",
-    "angular-cookies": "1.2.16",
-    "angular-local-storage-service": "https://github.com/EQCO/angular-local-storage-service.git",
+    "angular": "~1.2.16",
+    "angular-cookies": "~1.2.16",
+    "angular-local-storage-service": "EQCO/angular-local-storage-service",
     "jquery": "2.1.0",
     "underscore": "1.6.0",
     "underscore.string": "2.3.0"
