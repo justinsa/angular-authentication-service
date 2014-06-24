@@ -32,5 +32,21 @@ describe('services', function() {
       }));
     });
 
+    describe('checkAndBroadcastLoginConfirmed', function() {
+      it('should broadcast auth-loginConfirmed if the user is logged in', inject(function($authentication, $rootScope, $store) {
+        $store.set('user.profile', {roles:['a','b','c']});
+        sinon.spy($rootScope, '$broadcast');
+        $authentication.checkAndBroadcastLoginConfirmed();
+        $rootScope.$broadcast.calledWith('event:auth-loginConfirmed').should.be.true;
+      }));
+
+      it('should not broadcast anything if the user is not logged in', inject(function($authentication, $rootScope, $store) {
+        $store.remove('user.profile');
+        sinon.spy($rootScope, '$broadcast');
+        $authentication.checkAndBroadcastLoginConfirmed();
+        $rootScope.$broadcast.neverCalledWith('event:auth-loginConfirmed').should.be.true;
+      }));
+    });
+
   });
 });
