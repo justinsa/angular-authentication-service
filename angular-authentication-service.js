@@ -16,21 +16,21 @@
     /**
      * call this function to provide configuration options to the service.
      */
-     var configuration = {};
+     var configuration = {
+      profileStorageKey: 'user.profile',
+      notPermittedRedirectPath: '/',
+      unauthenticatedRedirectPath: '/',
+      userProperty: 'roles',
+      validationFunction: function (user, roles) {
+        return _.has(user, configuration.userProperty) &&
+          (_.find(roles, function (role) {
+            return _.contains(user[configuration.userProperty], role);
+          }) !== undefined);
+      }
+    };
 
     this.configure = function (configurationOpts) {
-      configuration = _.defaults(configurationOpts, {
-        profileStorageKey: 'user.profile',
-        notPermittedRedirectPath: '/',
-        unauthenticatedRedirectPath: '/',
-        userProperty: 'roles',
-        validationFunction: function (user, roles) {
-          return _.has(user, configuration.userProperty) &&
-            (_.find(roles, function (role) {
-              return _.contains(user[configuration.userProperty], role);
-            }) !== undefined);
-        }
-      });
+      configuration = _.defaults(configurationOpts, configuration);
     };
 
     this.$get = ['$rootScope', '$store', function($rootScope, $store) {
