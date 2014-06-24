@@ -3,3 +3,4 @@
 *.[Ll]og
 temp/
 vendor/
+.*.swp
