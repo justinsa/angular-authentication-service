@@ -16,7 +16,7 @@
     /**
      * call this function to provide configuration options to the service.
      */
-     var configuration = {
+    var configuration = {
       profileStorageKey: 'user.profile',
       notPermittedRedirectPath: '/',
       unauthenticatedRedirectPath: '/',
