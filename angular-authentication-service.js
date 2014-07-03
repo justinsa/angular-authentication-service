@@ -4,7 +4,11 @@
   module.controller('SecurityController', ['$authentication', '$location', '$scope', function ($authentication, $location, $scope) {
     $scope.permit = function () {
       if (!$authentication.allowed.apply($authentication, _.toArray(arguments))) {
-        $location.path($authentication.getConfig().notPermittedRedirectPath);
+        if (!$authentication.isAuthenticated()) {
+          $location.path($authentication.getConfig().unauthenticatedRedirectPath);
+        } else {
+          $location.path($authentication.getConfig().notPermittedRedirectPath);
+        }
       }
     };
 
