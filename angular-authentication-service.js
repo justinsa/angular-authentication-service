@@ -1,14 +1,15 @@
 (function (window, _, angular, undefined) {
   'use strict';
-  var module = angular.module('authentication.service', ['local.storage']);
+  var module = angular.module('authentication.service', ['ngCookies', 'local.storage']);
   module.controller('SecurityController', ['$authentication', '$location', '$scope', function ($authentication, $location, $scope) {
     $scope.permit = function () {
-      if (!$authentication.allowed.apply($authentication, _.toArray(arguments))) {
-        if (!$authentication.isAuthenticated()) {
-          $location.path($authentication.getConfig().unauthenticatedRedirectPath);
-        } else {
-          $location.path($authentication.getConfig().notPermittedRedirectPath);
-        }
+      if ($authentication.allowed.apply($authentication, _.toArray(arguments))) {
+        return;
+      }
+      if ($authentication.isAuthenticated()) {
+        $location.path($authentication.getConfig().notPermittedRedirectPath)
+      } else {
+        $location.path($authentication.getConfig().unauthenticatedRedirectPath);
       }
     };
 
@@ -21,6 +22,7 @@
      * call this function to provide configuration options to the service.
      */
     var configuration = {
+      authCookieKey: null,
       profileStorageKey: 'user.profile',
       notPermittedRedirectPath: '/',
       unauthenticatedRedirectPath: '/',
@@ -37,13 +39,20 @@
       configuration = _.defaults(configurationOpts, configuration);
     };
 
-    this.$get = ['$rootScope', '$store', function($rootScope, $store) {
+    this.$get = ['$cookieStore', '$rootScope', '$store', function($cookieStore, $rootScope, $store) {
       return {
-
         /**
          * returns true if there is a user profile in storage.
          */
         isAuthenticated: function() {
+          if (configuration.authCookieKey && !$cookieStore.get(configuration.authCookieKey)) {
+            if ($store.has(configuration.profileStorageKey)) {
+              // The cookie is absent or expired but we still have the profile stored.
+              // Clear the profile and broadcast logout to ensure the app updates.
+              this.logoutConfirmed();
+            }
+            return false;
+          }
           return $store.has(configuration.profileStorageKey);
         },
 
@@ -90,7 +99,7 @@
          */
         allowed: function() {
           var args = _.toArray(arguments);
-          var authenticated = $store.has(configuration.profileStorageKey);
+          var authenticated = this.isAuthenticated();
           // handle 'all' and 'anonymous' special cases
           if (args.length === 1) {
             if (args[0].toUpperCase() === 'ALL') {
@@ -104,8 +113,7 @@
           if (args.length === 0 || !authenticated) {
             return false;
           }
-          var user = $store.get(configuration.profileStorageKey);
-          return configuration.validationFunction(user, args);
+          return configuration.validationFunction(this.profile(), args);
         },
 
         /**
