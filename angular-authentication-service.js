@@ -7,7 +7,7 @@
         return;
       }
       if ($authentication.isAuthenticated()) {
-        $location.path($authentication.getConfig().notPermittedRedirectPath)
+        $location.path($authentication.getConfig().notPermittedRedirectPath);
       } else {
         $location.path($authentication.getConfig().unauthenticatedRedirectPath);
       }
@@ -39,13 +39,13 @@
       configuration = _.defaults(configurationOpts, configuration);
     };
 
-    this.$get = ['$cookieStore', '$rootScope', '$store', function($cookieStore, $rootScope, $store) {
+    this.$get = ['$cookies', '$cookieStore', '$rootScope', '$store', function($cookies, $cookieStore, $rootScope, $store) {
       return {
         /**
          * returns true if there is a user profile in storage.
          */
         isAuthenticated: function() {
-          if (configuration.authCookieKey && !$cookieStore.get(configuration.authCookieKey)) {
+          if (configuration.authCookieKey && !$cookies[configuration.authCookieKey]) {
             if ($store.has(configuration.profileStorageKey)) {
               // The cookie is absent or expired but we still have the profile stored.
               // Clear the profile and broadcast logout to ensure the app updates.
