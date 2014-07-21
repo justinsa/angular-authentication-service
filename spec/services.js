@@ -40,6 +40,7 @@ describe('services', function() {
         configuration.notPermittedRedirectPath.should.match('/notpermitted');
         configuration.unauthenticatedRedirectPath.should.match('/unauthenticated');
         configuration.userRolesProperty.should.match('roles');
+        configuration.rolesFunction.should.be.a.function; // jshint ignore:line
         configuration.validationFunction.should.be.a.function; // jshint ignore:line
       })
     );

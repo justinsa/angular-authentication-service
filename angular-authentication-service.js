@@ -11,6 +11,13 @@
       notPermittedRedirectPath: '/',
       unauthenticatedRedirectPath: '/',
       userRolesProperty: 'roles',
+      rolesFunction: function (userProfile) {
+        if (_.has(userProfile, this.userRolesProperty)) {
+          var roles = userProfile[this.userRolesProperty];
+          return _.isArray(roles) ? roles : [roles];
+        }
+        return [];
+      },
       validationFunction: function (userRoles, allowedRoles) {
         return !_.isEmpty(userRoles) && !_.isEmpty(allowedRoles) &&
           (_.find(allowedRoles, function (role) { return _.contains(userRoles, role); }) !== undefined);
@@ -106,17 +113,10 @@
         },
 
         /**
-         * call this function to retrieve the roles collection of the user profile.
+         * call this function to retrieve the collection of roles for the user profile.
          */
         roles: function() {
-          if (this.isAuthenticated) {
-            var profile = this.profile();
-            if (_.has(profile, configuration.userRolesProperty)) {
-              var roles = profile[configuration.userRolesProperty];
-              return _.isArray(roles) ? roles : [roles];
-            }
-          }
-          return [];
+          return configuration.rolesFunction(this.profile());
         },
 
         /**
