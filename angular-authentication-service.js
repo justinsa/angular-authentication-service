@@ -1,22 +1,6 @@
 (function (window, _, angular, undefined) {
   'use strict';
   var module = angular.module('authentication.service', ['ngCookies', 'local.storage']);
-  module.controller('SecurityController', ['$authentication', '$location', '$scope', function ($authentication, $location, $scope) {
-    $scope.permit = function () {
-      if ($authentication.allowed.apply($authentication, _.toArray(arguments))) {
-        return;
-      }
-      if ($authentication.isAuthenticated()) {
-        $location.path($authentication.getConfig().notPermittedRedirectPath);
-      } else {
-        $location.path($authentication.getConfig().unauthenticatedRedirectPath);
-      }
-    };
-
-    if (!$authentication.isAuthenticated()) {
-      $location.path($authentication.getConfig().unauthenticatedRedirectPath);
-    }
-  }]);
   module.provider('$authentication', function() {
     /**
      * call this function to provide configuration options to the service.
@@ -26,12 +10,10 @@
       profileStorageKey: 'user.profile',
       notPermittedRedirectPath: '/',
       unauthenticatedRedirectPath: '/',
-      userProperty: 'roles',
-      validationFunction: function (user, roles) {
-        return _.has(user, configuration.userProperty) &&
-          (_.find(roles, function (role) {
-            return _.contains(user[configuration.userProperty], role);
-          }) !== undefined);
+      userRolesProperty: 'roles',
+      validationFunction: function (userRoles, allowedRoles) {
+        return !_.isEmpty(userRoles) && !_.isEmpty(allowedRoles) &&
+          (_.find(allowedRoles, function (role) { return _.contains(userRoles, role); }) !== undefined);
       }
     };
 
@@ -39,7 +21,7 @@
       configuration = _.defaults(configurationOpts, configuration);
     };
 
-    this.$get = ['$cookies', '$cookieStore', '$rootScope', '$store', function($cookies, $cookieStore, $rootScope, $store) {
+    this.$get = ['$cookies', '$cookieStore', '$location', '$rootScope', '$store', function ($cookies, $cookieStore, $location, $rootScope, $store) {
       return {
         /**
          * returns true if there is a user profile in storage.
@@ -113,7 +95,7 @@
           if (args.length === 0 || !authenticated) {
             return false;
           }
-          return configuration.validationFunction(this.profile(), args);
+          return configuration.validationFunction(this.roles(), args);
         },
 
         /**
@@ -124,10 +106,31 @@
         },
 
         /**
-         * call this function to get the configuration options
+         * call this function to retrieve the roles collection of the user profile.
          */
-        getConfig: function() {
-          return configuration;
+        roles: function() {
+          if (this.isAuthenticated) {
+            var profile = this.profile();
+            if (_.has(profile, configuration.userRolesProperty)) {
+              var roles = profile[configuration.userRolesProperty];
+              return _.isArray(roles) ? roles : [roles];
+            }
+          }
+          return [];
+        },
+
+        /**
+         * call this function to determine if a user is permitted and redirect if not.
+         */
+        permit: function () {
+          if (this.allowed.apply(this, _.toArray(arguments))) {
+            return;
+          }
+          if (this.isAuthenticated()) {
+            $location.path(configuration.notPermittedRedirectPath);
+          } else {
+            $location.path(configuration.unauthenticatedRedirectPath);
+          }
         }
       };
     }];
