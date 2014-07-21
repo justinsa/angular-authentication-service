@@ -131,6 +131,13 @@
           } else {
             $location.path(configuration.unauthenticatedRedirectPath);
           }
+        },
+
+        /**
+         * returns the configuration hash.
+         */
+        getConfiguration: function() {
+          return configuration;
         }
       };
     }];

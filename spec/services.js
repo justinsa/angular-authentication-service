@@ -14,10 +14,33 @@ describe('services', function() {
   describe('$authentication', function() {
     it('should have a list of functions',
       inject(function ($authentication) {
-        var functions = ['isAuthenticated', 'checkAndBroadcastLoginConfirmed', 'loginConfirmed', 'loginRequired', 'logoutConfirmed', 'allowed', 'profile', 'roles', 'permit'];
+        var functions = [
+          'isAuthenticated',
+          'checkAndBroadcastLoginConfirmed',
+          'loginConfirmed',
+          'loginRequired',
+          'logoutConfirmed',
+          'allowed',
+          'profile',
+          'roles',
+          'permit',
+          'getConfiguration'
+        ];
         for (var i in functions) {
           $authentication[functions[i]].should.be.a.function; // jshint ignore:line
         }
+      })
+    );
+
+    it('should have an expected configuration',
+      inject(function ($authentication) {
+        var configuration = $authentication.getConfiguration();
+        (configuration.authCookieKey === null).should.be.true; // jshint ignore:line
+        configuration.profileStorageKey.should.match('user.profile');
+        configuration.notPermittedRedirectPath.should.match('/notpermitted');
+        configuration.unauthenticatedRedirectPath.should.match('/unauthenticated');
+        configuration.userRolesProperty.should.match('roles');
+        configuration.validationFunction.should.be.a.function; // jshint ignore:line
       })
     );
 
