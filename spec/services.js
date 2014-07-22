@@ -85,16 +85,16 @@ describe('services', function() {
 
         describe('that is set', function() {
           it('should return false if user.profile is not set in store',
-            inject(function ($authentication, $cookieStore, $store) {
-              $cookieStore.put('AUTH-COOKIE', 'Authorized');
+            inject(function ($authentication, $document, $store) {
+              $document.cookie = 'AUTH-COOKIE=Authorized';
               $store.has('user.profile').should.be.false; // jshint ignore:line
               $authentication.isAuthenticated().should.be.false; // jshint ignore:line
             })
           );
 
           it('should return true if user.profile is set in store',
-            inject(function ($authentication, $cookieStore, $store) {
-              $cookieStore.put('AUTH-COOKIE', 'Authorized');
+            inject(function ($authentication, $document, $store) {
+              $document.cookie = 'AUTH-COOKIE=Authorized';
               $store.set('user.profile', { roles: ['a', 'b', 'c'] });
               $authentication.isAuthenticated().should.be.true; // jshint ignore:line
             })
