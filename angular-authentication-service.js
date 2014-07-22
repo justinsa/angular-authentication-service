@@ -28,13 +28,17 @@
       configuration = _.defaults(configurationOpts, configuration);
     };
 
-    this.$get = ['$cookies', '$cookieStore', '$location', '$rootScope', '$store', function ($cookies, $cookieStore, $location, $rootScope, $store) {
+    this.$get = [
+    '$cookieStore', '$document', '$location', '$rootScope', '$store',
+    function ($cookieStore, $document, $location, $rootScope, $store) {
       return {
         /**
          * returns true if there is a user profile in storage.
          */
         isAuthenticated: function() {
-          if (configuration.authCookieKey && !$cookies[configuration.authCookieKey]) {
+          if (configuration.authCookieKey &&
+            (_.isEmpty($document.cookie) || $document.cookie.indexOf(configuration.authCookieKey) < 0)
+          ) {
             if ($store.has(configuration.profileStorageKey)) {
               // The cookie is absent or expired but we still have the profile stored.
               // Clear the profile and broadcast logout to ensure the app updates.
