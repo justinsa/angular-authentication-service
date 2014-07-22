@@ -1,4 +1,4 @@
-/* globals beforeEach, describe, inject, it, sinon */
+/* globals afterEach, beforeEach, describe, inject, it, sinon */
 'use strict';
 
 describe('services', function() {
@@ -16,6 +16,7 @@ describe('services', function() {
       inject(function ($authentication) {
         var functions = [
           'isAuthenticated',
+          'isAuthCookieMissing',
           'checkAndBroadcastLoginConfirmed',
           'loginConfirmed',
           'loginRequired',
@@ -45,6 +46,51 @@ describe('services', function() {
       })
     );
 
+    describe('isAuthCookieMissing', function() {
+      afterEach(inject(function($document) {
+        // Clear cookies
+        $document[0].cookie = 'AUTH-COOKIE=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      }));
+
+      describe('where cookie is not required', function() {
+        it ('should return false if auth cookie is not set',
+          inject(function ($authentication) {
+            $authentication.isAuthCookieMissing().should.be.false; // jshint ignore:line
+          })
+        );
+
+        it ('should return false if auth cookie is set',
+          inject(function ($authentication, $document) {
+            $document[0].cookie = 'AUTH-COOKIE=Authorized';
+            $authentication.isAuthCookieMissing().should.be.false; // jshint ignore:line
+          })
+        );
+      });
+
+      describe('where cookie is required', function() {
+        beforeEach(function() {
+          module('authentication.service', function ($authenticationProvider) {
+            $authenticationProvider.configure({
+              authCookieKey: 'AUTH-COOKIE'
+            });
+          });
+        });
+
+        it ('should return true if auth cookie is not set',
+          inject(function ($authentication) {
+            $authentication.isAuthCookieMissing().should.be.true; // jshint ignore:line
+          })
+        );
+
+        it ('should return false if auth cookie is set',
+          inject(function ($authentication, $document) {
+            $document[0].cookie = 'AUTH-COOKIE=Authorized';
+            $authentication.isAuthCookieMissing().should.be.false; // jshint ignore:line
+          })
+        );
+      });
+    });
+
     describe('isAuthenticated', function() {
       it('should return true if user.profile is set in the store',
         inject(function ($authentication, $store) {
@@ -70,12 +116,19 @@ describe('services', function() {
           });
         });
 
+        afterEach(inject(function($document) {
+          // Clear cookies
+          $document[0].cookie = 'AUTH-COOKIE=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          $document[0].cookie = 'NOT-AUTH-COOKIE=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        }));
+
         describe('that is not set', function() {
           it('should return false if user.profile is set in store',
-            inject(function ($authentication, $rootScope, $store) {
+            inject(function ($authentication, $document, $rootScope, $store) {
               sinon.spy($rootScope, '$broadcast');
               $store.set('user.profile', { roles: ['a', 'b', 'c'] });
               $store.has('user.profile').should.be.true; // jshint ignore:line
+              $document[0].cookie = 'NOT-AUTH-COOKIE=Not Authorized';
               $authentication.isAuthenticated().should.be.false; // jshint ignore:line
               $store.has('user.profile').should.be.false; // jshint ignore:line
               $rootScope.$broadcast.calledWith('event:auth-logoutConfirmed');
@@ -86,7 +139,7 @@ describe('services', function() {
         describe('that is set', function() {
           it('should return false if user.profile is not set in store',
             inject(function ($authentication, $document, $store) {
-              $document.cookie = 'AUTH-COOKIE=Authorized';
+              $document[0].cookie = 'AUTH-COOKIE=Authorized';
               $store.has('user.profile').should.be.false; // jshint ignore:line
               $authentication.isAuthenticated().should.be.false; // jshint ignore:line
             })
@@ -94,7 +147,7 @@ describe('services', function() {
 
           it('should return true if user.profile is set in store',
             inject(function ($authentication, $document, $store) {
-              $document.cookie = 'AUTH-COOKIE=Authorized';
+              $document[0].cookie = 'AUTH-COOKIE=Authorized';
               $store.set('user.profile', { roles: ['a', 'b', 'c'] });
               $authentication.isAuthenticated().should.be.true; // jshint ignore:line
             })
