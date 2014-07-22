@@ -56,7 +56,7 @@
             key += '=';
             var cookies = $document[0].cookie.split(';');
             return !_.any(cookies, function (cookie) {
-              return _.isString(cookie) && cookie.indexOf(key) === 0;
+              return _.isString(cookie) && cookie.trim().indexOf(key) === 0;
             });
           }
           return false;

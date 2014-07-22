@@ -50,6 +50,8 @@ describe('services', function() {
       afterEach(inject(function($document) {
         // Clear cookies
         $document[0].cookie = 'AUTH-COOKIE=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        $document[0].cookie = 'PRE-AUTH-COOKIE=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        $document[0].cookie = 'POST-AUTH-COOKIE=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
       }));
 
       describe('where cookie is not required', function() {
@@ -85,6 +87,15 @@ describe('services', function() {
         it ('should return false if auth cookie is set',
           inject(function ($authentication, $document) {
             $document[0].cookie = 'AUTH-COOKIE=Authorized';
+            $authentication.isAuthCookieMissing().should.be.false; // jshint ignore:line
+          })
+        );
+
+        it ('should return false if auth cookie is set with other cookies',
+          inject(function ($authentication, $document) {
+            $document[0].cookie = 'PRE-AUTH-COOKIE=Not Authorized';
+            $document[0].cookie = 'AUTH-COOKIE=Authorized';
+            $document[0].cookie = 'POST-AUTH-COOKIE=Not Authorized';
             $authentication.isAuthCookieMissing().should.be.false; // jshint ignore:line
           })
         );
