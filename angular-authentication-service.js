@@ -36,9 +36,7 @@
          * returns true if there is a user profile in storage.
          */
         isAuthenticated: function() {
-          if (configuration.authCookieKey &&
-            (_.isEmpty($document.cookie) || $document.cookie.indexOf(configuration.authCookieKey) < 0)
-          ) {
+          if (this.isAuthCookieMissing()) {
             if ($store.has(configuration.profileStorageKey)) {
               // The cookie is absent or expired but we still have the profile stored.
               // Clear the profile and broadcast logout to ensure the app updates.
@@ -47,6 +45,21 @@
             return false;
           }
           return $store.has(configuration.profileStorageKey);
+        },
+
+        /**
+         * returns true if the auth cookie is required and not present.
+         */
+        isAuthCookieMissing: function() {
+          var key = configuration.authCookieKey;
+          if (_.isString(key) && !_.isEmpty(key)) {
+            key += '=';
+            var cookies = $document[0].cookie.split(';');
+            return !_.any(cookies, function (cookie) {
+              return _.isString(cookie) && cookie.trim().indexOf(key) === 0;
+            });
+          }
+          return false;
         },
 
         /**
