@@ -350,6 +350,70 @@ describe('services', function() {
           $location.path().should.match('/about');
         });
       });
+
+      describe('reauth', function() {
+        var $authentication, configuration, $store;
+
+        beforeEach(module(function($authenticationProvider) {
+          configuration = {
+            profileStorageKey: 'foo',
+            reauthFunc: sinon.spy(),
+            reauthInterval: 100
+          };
+          $authenticationProvider.configure(configuration);
+        }));
+
+        beforeEach(inject(function (_$authentication_, _$store_) {
+          $authentication = _$authentication_;
+          $store = _$store_;
+        }));
+
+        describe('without authenticated user', function () {
+          beforeEach(inject(function () {
+            $store.set('foo', null);
+          }));
+
+          it('should not have a registered callback', function () {
+            (configuration.reauthId === null).should.be.true; // jshint ignore:line
+          });
+
+          it('should not call reauthFunc if the user is not authenticated', function () {
+            $authentication.reauth();
+            configuration.reauthFunc.called.should.be.false; // jshint ignore:line
+          });
+        });
+
+        describe('with authenticated user', function () {
+          beforeEach(inject(function () {
+            $store.set('foo', 'not null');
+          }));
+
+          it('should call reauthFunc if the user is authenticated', function () {
+            $authentication.reauth();
+            configuration.reauthFunc.called.should.be.true; // jshint ignore:line
+          });
+
+          it('should register a callback', function () {
+            (configuration.reauthId === null).should.be.true;
+            $authentication.reauth();
+            (configuration.reauthId !== null).should.be.true;
+          });
+        });
+
+        describe('on logout', function() {
+          beforeEach(inject(function () {
+            $store.set('foo', 'not null');
+          }));
+
+          it('should unregister the interval', function () {
+            (configuration.reauthId === null).should.be.true;
+            $authentication.reauth();
+            (configuration.reauthId !== null).should.be.true;
+            $authentication.logoutConfirmed();
+            (configuration.reauthId === null).should.be.true;
+          });
+        });
+      });
     });
   });
 });
