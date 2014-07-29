@@ -2,6 +2,7 @@
   'use strict';
   var module = angular.module('authentication.service', ['ngCookies', 'local.storage']);
   module.provider('$authentication', function() {
+
     /**
      * call this function to provide configuration options to the service.
      */
@@ -21,7 +22,10 @@
       validationFunction: function (userRoles, allowedRoles) {
         return !_.isEmpty(userRoles) && !_.isEmpty(allowedRoles) &&
           (_.find(allowedRoles, function (role) { return _.contains(userRoles, role); }) !== undefined);
-      }
+      },
+      reauthFunc: function () {},
+      reauthTimeout: 1200000,
+      reauthId: null
     };
 
     this.configure = function (configurationOpts) {
@@ -31,7 +35,7 @@
     this.$get = [
     '$cookieStore', '$document', '$location', '$rootScope', '$store',
     function ($cookieStore, $document, $location, $rootScope, $store) {
-      return {
+      var authFunctions = {
         /**
          * returns true if there is a user profile in storage.
          */
@@ -69,6 +73,7 @@
          */
         loginConfirmed: function (data) {
           $store.set(configuration.profileStorageKey, data);
+          configuration.reauthId = setInterval(configuration.reauthFunc, configuration.reauthTimeout);
           $rootScope.$broadcast('event:auth-loginConfirmed', data);
         },
 
@@ -95,6 +100,8 @@
          */
         logoutConfirmed: function() {
           $store.remove(configuration.profileStorageKey);
+          window.clearInterval(configuration.reauthId);
+          configuration.reauthId = null;
           $rootScope.$broadcast('event:auth-logoutConfirmed');
         },
 
@@ -155,8 +162,20 @@
          */
         getConfiguration: function() {
           return configuration;
+        },
+
+        /**
+         * call to reauthenticate, useful in token situations.
+         */
+        reauth: function() {
+          if (authFunctions.isAuthenticated()) {
+            configuration.reauthFunc();
+            configuration.reauthId = setInterval(configuration.reauthFunc, configuration.reauthTimeout);
+          }
         }
       };
+
+      return authFunctions;
     }];
   });
 })(window, window._, window.angular);
