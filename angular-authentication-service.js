@@ -23,7 +23,7 @@
         return !_.isEmpty(userRoles) && !_.isEmpty(allowedRoles) &&
           (_.find(allowedRoles, function (role) { return _.contains(userRoles, role); }) !== undefined);
       },
-      reauthFunc: function () {},
+      reauthFunc: function (profile, callback) { callback(); },
       reauthTimeout: 1200000,
       reauthId: null
     };
@@ -35,6 +35,15 @@
     this.$get = [
     '$cookieStore', '$document', '$location', '$rootScope', '$store',
     function ($cookieStore, $document, $location, $rootScope, $store) {
+
+      var reauthWrapper = function() {
+        configuration.reauthFunc(authFunctions.profile(), function(updatedProfile) {
+          if (_.isObject(updatedProfile)) {
+            $store.set(configuration.profileStorageKey, updatedProfile);
+          }
+        });
+      };
+
       var authFunctions = {
         /**
          * returns true if there is a user profile in storage.
@@ -73,7 +82,7 @@
          */
         loginConfirmed: function (data) {
           $store.set(configuration.profileStorageKey, data);
-          configuration.reauthId = setInterval(configuration.reauthFunc, configuration.reauthTimeout);
+          configuration.reauthId = setInterval(reauthWrapper, configuration.reauthTimeout);
           $rootScope.$broadcast('event:auth-loginConfirmed', data);
         },
 
@@ -169,8 +178,8 @@
          */
         reauth: function() {
           if (authFunctions.isAuthenticated()) {
-            configuration.reauthFunc();
-            configuration.reauthId = setInterval(configuration.reauthFunc, configuration.reauthTimeout);
+            reauthWrapper();
+            configuration.reauthId = setInterval(configuration.reauthWrapper, configuration.reauthTimeout);
           }
         }
       };
