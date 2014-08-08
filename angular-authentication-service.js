@@ -133,7 +133,13 @@
          * call this function to retrieve the existing user profile from storage.
          */
         profile: function() {
-          return $store.get(configuration.profileStorageKey);
+          var profile = $store.get(configuration.profileStorageKey);
+          if (_.isObject(profile)) {
+            profile.$apply = function() {
+              $store.set(configuration.profileStorageKey, _.omit(this, '$apply'));
+            };
+          }
+          return profile;
         },
 
         /**
