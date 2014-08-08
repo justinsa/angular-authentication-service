@@ -37,9 +37,11 @@
     function ($cookieStore, $document, $location, $rootScope, $store) {
 
       var reauthWrapper = function() {
-        configuration.reauthFunc(authFunctions.profile(), function(updatedProfile) {
+        configuration.reauthFunc(authFunctions.profile(), function(err, updatedProfile) {
           if (_.isObject(updatedProfile)) {
-            $store.set(configuration.profileStorageKey, updatedProfile);
+            authFunctions.loginConfirmed(updatedProfile);
+          } else {
+            authFunctions.logoutConfirmed();
           }
         });
       };
