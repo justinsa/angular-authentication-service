@@ -1,8 +1,7 @@
 (function (window, _, angular, undefined) {
   'use strict';
   var module = angular.module('authentication.service', ['ngCookies', 'local.storage']);
-  module.provider('$authentication', function() {
-
+  module.provider('$authentication', function () {
     /**
      * call this function to provide configuration options to the service.
      */
@@ -39,7 +38,7 @@
         /**
          * returns true if there is a user profile in storage.
          */
-        isAuthenticated: function() {
+        isAuthenticated: function () {
           if (this.isAuthCookieMissing()) {
             if ($store.has(configuration.profileStorageKey)) {
               // The cookie is absent or expired but we still have the profile stored.
@@ -54,7 +53,7 @@
         /**
          * returns true if the auth cookie is required and not present.
          */
-        isAuthCookieMissing: function() {
+        isAuthCookieMissing: function () {
           var key = configuration.authCookieKey;
           if (_.isString(key) && !_.isEmpty(key)) {
             key += '=';
@@ -82,7 +81,7 @@
          * and to broadcast the auth-loginConfirmed event, if so. This allows
          * directives to load an initial state without duplicating code.
          */
-        checkAndBroadcastLoginConfirmed: function() {
+        checkAndBroadcastLoginConfirmed: function () {
           if (this.isAuthenticated()) {
             $rootScope.$broadcast('event:auth-loginConfirmed', this.profile());
           }
@@ -91,14 +90,14 @@
         /**
          * call this function to indicate that authentication is required.
          */
-        loginRequired: function() {
+        loginRequired: function () {
           $rootScope.$broadcast('event:auth-loginRequired');
         },
 
         /**
          * call this function to indicate that unauthentication was successful.
          */
-        logoutConfirmed: function() {
+        logoutConfirmed: function () {
           $store.remove(configuration.profileStorageKey);
           window.clearInterval(configuration.reauthId);
           configuration.reauthId = null;
@@ -110,7 +109,7 @@
          * 'all' is a special case role that will return true for all authenticated users.
          * 'anonymous' is a special case role that will return true for an unauthenticated user.
          */
-        allowed: function() {
+        allowed: function () {
           var args = _.toArray(arguments);
           var authenticated = this.isAuthenticated();
           // handle 'all' and 'anonymous' special cases
@@ -132,7 +131,7 @@
         /**
          * call this function to retrieve the existing user profile from storage.
          */
-        profile: function() {
+        profile: function () {
           var profile = $store.get(configuration.profileStorageKey);
           if (_.isObject(profile)) {
             profile.$apply = function() {
@@ -145,8 +144,26 @@
         /**
          * call this function to retrieve the collection of roles for the user profile.
          */
-        roles: function() {
+        roles: function () {
           return configuration.rolesFunction(this.profile());
+        },
+
+        /**
+         * call this function to determine if the user profile is in all of the specified roles.
+         */
+        isInAllRoles: function () {
+          var needles = _.toArray(arguments);
+          var haystack = configuration.rolesFunction(this.profile());
+          return needles.length > 0 && _.intersection(haystack, needles).length === needles.length;
+        },
+
+        /**
+         * call this function to determine if the user profile is in any of the specified roles.
+         */
+        isInAnyRoles: function () {
+          var needles = _.toArray(arguments);
+          var haystack = configuration.rolesFunction(this.profile());
+          return _.intersection(haystack, needles).length > 0;
         },
 
         /**
@@ -166,7 +183,7 @@
         /**
          * returns the configuration hash.
          */
-        getConfiguration: function() {
+        getConfiguration: function () {
           return configuration;
         },
 
