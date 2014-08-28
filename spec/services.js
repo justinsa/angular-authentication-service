@@ -392,7 +392,7 @@ describe('services', function () {
       });
     });
 
-    describe('isInAllRoles call', function () {
+    describe('isInAnyRoles call', function () {
       describe('authenticated', function () {
         var $authentication, $store;
         beforeEach(
