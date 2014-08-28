@@ -24,6 +24,8 @@ describe('services', function () {
           'allowed',
           'profile',
           'roles',
+          'isInAllRoles',
+          'isInAnyRoles',
           'permit',
           'getConfiguration'
         ];
