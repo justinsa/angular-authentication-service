@@ -13,5 +13,17 @@
     "mocha": "~1.20.0",
     "should": "~3.3.1",
     "sinon": "~1.10.1"
-  }
+  },
+  "main": [
+    "angular-authentication-service.js",
+    "LICENSE"
+  ],
+  "ignore": [
+    "spec/*.js",
+    ".git*",
+    ".jshintrc",
+    "gulpfile.js",
+    "package.json",
+    "test.html"
+  ]
 }
