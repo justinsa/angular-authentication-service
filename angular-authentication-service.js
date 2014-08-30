@@ -8,6 +8,8 @@
     var configuration = {
       authCookieKey: null,
       profileStorageKey: 'user.profile',
+      onLoginRedirectPath: '/',
+      onLogoutRedirectPath: '/',
       notPermittedRedirectPath: '/',
       unauthenticatedRedirectPath: '/',
       userRolesProperty: 'roles',
@@ -74,6 +76,9 @@
           $store.set(configuration.profileStorageKey, data);
           configuration.reauthId = setInterval(configuration.reauthFunc, configuration.reauthTimeout);
           $rootScope.$broadcast('event:auth-loginConfirmed', data);
+          if (_.isString(configuration.onLoginRedirectPath)) {
+            $location.path(configuration.onLoginRedirectPath);
+          }
         },
 
         /**
@@ -102,6 +107,9 @@
           window.clearInterval(configuration.reauthId);
           configuration.reauthId = null;
           $rootScope.$broadcast('event:auth-logoutConfirmed');
+          if (_.isString(configuration.onLogoutRedirectPath)) {
+            $location.path(configuration.onLogoutRedirectPath);
+          }
         },
 
         /**

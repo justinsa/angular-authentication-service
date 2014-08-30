@@ -5,6 +5,8 @@ describe('services', function () {
   beforeEach(
     module('authentication.service', function ($authenticationProvider) {
       $authenticationProvider.configure({
+        onLoginRedirectPath: '/dashboard',
+        onLogoutRedirectPath: '/home',
         notPermittedRedirectPath: '/notpermitted',
         unauthenticatedRedirectPath: '/unauthenticated'
       });
@@ -40,6 +42,8 @@ describe('services', function () {
         var configuration = $authentication.getConfiguration();
         (configuration.authCookieKey === null).should.be.true; // jshint ignore:line
         configuration.profileStorageKey.should.match('user.profile');
+        configuration.onLoginRedirectPath.should.match('/dashboard');
+        configuration.onLogoutRedirectPath.should.match('/home');
         configuration.notPermittedRedirectPath.should.match('/notpermitted');
         configuration.unauthenticatedRedirectPath.should.match('/unauthenticated');
         configuration.userRolesProperty.should.match('roles');
@@ -173,8 +177,17 @@ describe('services', function () {
       it('should broadcast auth-loginConfirmed when the user logs in',
         inject(function ($authentication, $rootScope) {
           sinon.spy($rootScope, '$broadcast');
-          $authentication.loginConfirmed({ roles: ['a', 'b', 'c'] });
+          $authentication.loginConfirmed({ roles: ['a'] });
           $rootScope.$broadcast.calledWith('event:auth-loginConfirmed').should.be.true; // jshint ignore:line
+        })
+      );
+
+      it('should navigate to the onLoginRedirectPath when the user logs in', 
+        inject(function ($authentication, $location) {
+          $location.path('/home');
+          $location.path().should.match('/home');
+          $authentication.loginConfirmed({ roles: ['a'] });
+          $location.path().should.match('/dashboard');
         })
       );
     });
@@ -182,7 +195,7 @@ describe('services', function () {
     describe('checkAndBroadcastLoginConfirmed', function () {
       it('should broadcast auth-loginConfirmed if the user is logged in',
         inject(function ($authentication, $rootScope, $store) {
-          $store.set('user.profile', { roles: ['a', 'b', 'c'] });
+          $store.set('user.profile', { roles: ['a'] });
           sinon.spy($rootScope, '$broadcast');
           $authentication.checkAndBroadcastLoginConfirmed();
           $rootScope.$broadcast.calledWith('event:auth-loginConfirmed').should.be.true; // jshint ignore:line
@@ -223,6 +236,16 @@ describe('services', function () {
           $store.set('user.profile', { roles: ['a', 'b', 'c'] });
           $authentication.logoutConfirmed();
           $store.has('user.profile').should.be.false; // jshint ignore:line
+        })
+      );
+
+      it('should navigate to the onLogoutRedirectPath when the user logs out', 
+        inject(function ($authentication, $location, $store) {
+          $store.set('user.profile', { roles: ['a', 'b', 'c'] });
+          $location.path('/dashboard');
+          $location.path().should.match('/dashboard');
+          $authentication.logoutConfirmed();
+          $location.path().should.match('/home');
         })
       );
     });
@@ -550,9 +573,9 @@ describe('services', function () {
           });
 
           it('should register a callback', function () {
-            (configuration.reauthId === null).should.be.true;
+            (configuration.reauthId === null).should.be.true; // jshint ignore:line
             $authentication.reauth();
-            (configuration.reauthId !== null).should.be.true;
+            (configuration.reauthId !== null).should.be.true; // jshint ignore:line
           });
         });
 
@@ -562,11 +585,11 @@ describe('services', function () {
           }));
 
           it('should unregister the interval', function () {
-            (configuration.reauthId === null).should.be.true;
+            (configuration.reauthId === null).should.be.true; // jshint ignore:line
             $authentication.reauth();
-            (configuration.reauthId !== null).should.be.true;
+            (configuration.reauthId !== null).should.be.true; // jshint ignore:line
             $authentication.logoutConfirmed();
-            (configuration.reauthId === null).should.be.true;
+            (configuration.reauthId === null).should.be.true; // jshint ignore:line
           });
         });
       });
