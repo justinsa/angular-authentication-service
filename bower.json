@@ -5,7 +5,8 @@
     "angular": "^1.2.19",
     "angular-local-storage-service": "EQCO/angular-local-storage-service",
     "jquery": "^2.1.0",
-    "lodash": "^2.4.1"
+    "lodash": "^2.4.1",
+    "angular-cookies": "~1.3.4"
   },
   "devDependencies": {
     "angular-mocks": "^1.2.19",
@@ -24,5 +25,8 @@
     "gulpfile.js",
     "package.json",
     "test.html"
-  ]
+  ],
+  "resolutions": {
+    "angular": "^1.2.19"
+  }
 }

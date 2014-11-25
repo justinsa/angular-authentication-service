@@ -179,13 +179,22 @@
          */
         permit: function () {
           if (this.allowed.apply(this, _.toArray(arguments))) {
+            $store.remove('attemptedPath');
             return;
           }
+          $store.set('attemptedPath', $location.path());
           if (this.isAuthenticated()) {
             $location.path(configuration.notPermittedRedirectPath);
           } else {
             $location.path(configuration.unauthenticatedRedirectPath);
           }
+        },
+
+        /**
+         * Returns the path that the user attempts to access before being redirected.
+         */
+        getAttemptedPath: function () {
+          return $store.get('attemptedPath');
         },
 
         /**

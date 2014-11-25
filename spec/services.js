@@ -468,6 +468,7 @@ describe('services', function () {
             $location.path().should.match('/about');
             $authentication.permit('anonymous');
             $location.path().should.match('/about');
+            ($authentication.getAttemptedPath() === null).should.be.true; // jshint ignore:line
           })
         );
 
@@ -477,6 +478,7 @@ describe('services', function () {
             $location.path().should.match('/about');
             $authentication.permit('all');
             $location.path().should.match('/unauthenticated');
+            $authentication.getAttemptedPath().should.equal('/about');
           })
         );
 
@@ -486,6 +488,7 @@ describe('services', function () {
             $location.path().should.match('/about');
             $authentication.permit('a', 'b');
             $location.path().should.match('/unauthenticated');
+            $authentication.getAttemptedPath().should.equal('/about');
           })
         );
       });
