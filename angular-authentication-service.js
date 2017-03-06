@@ -38,7 +38,7 @@
       },
       validationFunction: function (userRoles, allowedRoles) {
         return !_.isEmpty(userRoles) && !_.isEmpty(allowedRoles) &&
-          (_.find(allowedRoles, function (role) { return _.contains(userRoles, role); }) !== undefined);
+          (_.find(allowedRoles, function (role) { return _.includes(userRoles, role); }) !== undefined);
       },
       reauthFunc: function () {},
       reauthTimeout: 1200000,
@@ -76,8 +76,8 @@
           if (_.isString(key) && !_.isEmpty(key)) {
             key += '=';
             var cookies = $document[0].cookie.split(';');
-            return !_.any(cookies, function (cookie) {
-              return _.isString(cookie) && cookie.trim().indexOf(key) === 0;
+            return !_.some(cookies, function (cookie) {
+              return _.isString(cookie) && _.chain(cookie).trim().startsWith(key);
             });
           }
           return false;
