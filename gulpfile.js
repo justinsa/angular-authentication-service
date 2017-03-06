@@ -2,9 +2,9 @@
 var gulp = require('gulp');
 var jshint = require('gulp-jshint');
 gulp.task('js:lint', function() {
-  return gulp.src(['./gulpfile.js', './angular-authentication-service.js', './spec/services.js'])
+  return gulp.src(['./angular-authentication-service.js', './gulpfile.js', './tests.js'])
     .pipe(jshint())
-    .pipe(jshint.reporter('default'));
+    .pipe(jshint.reporter('fail'));
 });
 gulp.task('js:test', function() {
   var mochaPhantom = require('gulp-mocha-phantomjs');

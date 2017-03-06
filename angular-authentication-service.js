@@ -1,10 +1,21 @@
-(function (window, _, angular, undefined) {
+/* globals define, module */
+(function (root, factory) {
   'use strict';
-  var module = angular.module('authentication.service', ['ngCookies', 'local.storage']);
-  module.provider('$authentication', function () {
-    /**
-     * call this function to provide configuration options to the service.
-     */
+  if (typeof define === 'function' && define.amd) {
+    define(['lodash', 'angular', 'angular-cookies', 'ng-local-storage-service'], factory);
+  } else if (typeof module === 'object' && module.exports) {
+    module.exports = factory(
+      require('lodash'),
+      require('angular'),
+      require('angular-cookies'),
+      require('ng-local-storage-service')
+    );
+  } else {
+    factory(root._, root.angular);
+  }
+}(this, function (_, angular, ngCookies, localStorage, undefined) {
+  'use strict';
+  angular.module('authentication.service', ['ngCookies', 'local.storage']).provider('$authentication', function () {
     var configuration = {
       authCookieKey: null,
       profileStorageKey: 'user.profile',
@@ -34,8 +45,8 @@
     };
 
     this.$get = [
-    '$cookieStore', '$document', '$location', '$rootScope', '$store',
-    function ($cookieStore, $document, $location, $rootScope, $store) {
+    '$cookieStore', '$document', '$location', '$rootScope', '$store', '$window',
+    function ($cookieStore, $document, $location, $rootScope, $store, $window) {
       var authFunctions = {
         /**
          * returns true if there is a user profile in storage.
@@ -104,7 +115,7 @@
          */
         logoutConfirmed: function () {
           $store.remove(configuration.profileStorageKey);
-          window.clearInterval(configuration.reauthId);
+          $window.clearInterval(configuration.reauthId);
           configuration.reauthId = null;
           $rootScope.$broadcast('event:auth-logoutConfirmed');
           if (_.isString(configuration.onLogoutRedirectPath)) {
@@ -218,4 +229,5 @@
       return authFunctions;
     }];
   });
-})(window, window._, window.angular);
+  return angular;
+}));

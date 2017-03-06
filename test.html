@@ -5,38 +5,51 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mocha Test Runner</title>
-    <link rel="stylesheet" href="./vendor/mocha/mocha.css">
+    <link rel="stylesheet" href="./node_modules/mocha/mocha.css">
   </head>
   <body>
     <div id="mocha"></div>
-    <script src="./vendor/mocha/mocha.js"></script>
-    <script src="./vendor/should/should.js"></script>
-    <script src="./vendor/sinon/lib/sinon.js"></script>
-    <script src="./vendor/sinon/lib/sinon/spy.js"></script>
-    <script src="./vendor/sinon/lib/sinon/call.js"></script>
-    <script src="./vendor/sinon/lib/sinon/behavior.js"></script>
-    <script src="./vendor/sinon/lib/sinon/stub.js"></script>
-    <script src="./vendor/sinon/lib/sinon/mock.js"></script>
-    <script src="./vendor/sinon/lib/sinon/collection.js"></script>
-    <script src="./vendor/sinon/lib/sinon/assert.js"></script>
-    <script src="./vendor/sinon/lib/sinon/sandbox.js"></script>
-    <script src="./vendor/sinon/lib/sinon/test.js"></script>
-    <script src="./vendor/sinon/lib/sinon/test_case.js"></script>
-    <script src="./vendor/sinon/lib/sinon/assert.js"></script>
-    <script src="./vendor/sinon/lib/sinon/match.js"></script>
+    <script src="./node_modules/mocha/mocha.js"></script>
+    <script src="./node_modules/should/should.js"></script>
 
-    <script>mocha.setup('bdd');</script>
+    <!-- Load Sinon in the special way that it requires -->
+    <script src="./node_modules/sinon/lib/sinon.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/util/core.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/extend.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/typeOf.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/times_in_words.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/spy.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/call.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/behavior.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/stub.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/mock.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/collection.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/assert.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/sandbox.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/test.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/test_case.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/match.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/format.js"></script>
+    <script src="./node_modules/sinon/lib/sinon/log_error.js"></script>
 
-    <script src="./vendor/jquery/dist/jquery.js"></script>
-    <script src="./vendor/lodash/dist/lodash.js"></script>
-    <script src="./vendor/angular/angular.js"></script>
-    <script src="./vendor/angular-cookies/angular-cookies.js"></script>
-    <script src="./vendor/angular-local-storage-service/angular-local-storage-service.js"></script>
-    <script src="./vendor/angular-mocks/angular-mocks.js"></script>
+    <script>window.mocha.setup('bdd');</script>
+
+    <script src="./node_modules/lodash/dist/lodash.js"></script>
+    <script src="./node_modules/angular/angular.js"></script>
+    <script src="./node_modules/angular-cookies/angular-cookies.js"></script>
+    <script src="./node_modules/ng-local-storage-service/angular-local-storage-service.js"></script>
+    <script src="./node_modules/angular-mocks/angular-mocks.js"></script>
+
     <script src="./angular-authentication-service.js"></script>
 
-    <script src="./spec/services.js"></script>
+    <script src="./tests.js"></script>
 
-    <script>mochaPhantomJS.run();</script>
+    <script>
+      if (window.mochaPhantomJS) {
+        window.mochaPhantomJS.run();
+      } else {
+        window.mocha.run();
+      }
+    </script>
   </body>
 </html>
