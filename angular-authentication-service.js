@@ -1,15 +1,20 @@
 /* globals define, module */
 (function (root, factory) {
   'use strict';
-  if (typeof define === 'function' && define.amd) {
+  if (typeof module !== 'undefined' && module.exports) {
+    if (typeof angular === 'undefined') {
+      factory(
+        typeof _ === 'undefined' ? require('lodash') : root._,
+        require('angular'),
+        require('angular-cookies'),
+        require('ng-local-storage-service')
+      );
+    } else {
+      factory(root._, root.angular);
+    }
+    module.exports = 'ng-authentication-service';
+  } else if (typeof define === 'function' && define.amd) {
     define(['lodash', 'angular', 'angular-cookies', 'ng-local-storage-service'], factory);
-  } else if (typeof module === 'object' && module.exports) {
-    module.exports = factory(
-      require('lodash'),
-      require('angular'),
-      require('angular-cookies'),
-      require('ng-local-storage-service')
-    );
   } else {
     factory(root._, root.angular);
   }
