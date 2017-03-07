@@ -15,6 +15,7 @@
     "authorization service"
   ],
   "homepage": "https://github.com/justinsa/angular-authentication-service",
+  "license": "MIT",
   "main": "./angular-authentication-service.js",
   "ignore": [
     ".jshintrc",
