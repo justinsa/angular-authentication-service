@@ -5,24 +5,23 @@
     if (typeof angular === 'undefined') {
       factory(
         typeof _ === 'undefined' ? require('lodash') : root._,
-        require('angular'),
-        require('angular-cookies'),
-        require('ng-local-storage-service')
+        require('angular')
       );
     } else {
       factory(root._, root.angular);
     }
     module.exports = 'ng-authentication-service';
   } else if (typeof define === 'function' && define.amd) {
-    define(['lodash', 'angular', 'angular-cookies', 'ng-local-storage-service'], factory);
+    define(['lodash', 'angular'], factory);
   } else {
     factory(root._, root.angular);
   }
-}(this, function (_, angular, ngCookies, localStorage, undefined) {
+}(this, function (_, angular, undefined) {
   'use strict';
-  angular.module('authentication.service', ['ngCookies', 'local.storage']).provider('$authentication', function () {
+  angular.module('authentication.service', []).provider('$authentication', function () {
     var configuration = {
-      authCookieKey: null,
+      storageService: undefined,
+      authCookieKey: undefined,
       profileStorageKey: 'user.profile',
       onLoginRedirectPath: '/',
       onLogoutRedirectPath: '/',
@@ -50,22 +49,44 @@
     };
 
     this.$get = [
-    '$cookieStore', '$document', '$location', '$rootScope', '$store', '$window',
-    function ($cookieStore, $document, $location, $rootScope, $store, $window) {
+    '$document', '$injector', '$location', '$log', '$rootScope', '$window',
+    function ($document, $injector, $location, $log, $rootScope, $window) {
+      var storeService;
+      var storageService = function () {
+        if (storeService === undefined) {
+          if (!_.isString(configuration.storageService)) {
+            $log.error('No storageService configuration value provided');
+            return undefined;
+          }
+          if (!$injector.has(configuration.storageService)) {
+            $log.error('No matching service registered in Angular: ', configuration.storageService);
+            return undefined;
+          }
+          storeService = $injector.get(configuration.storageService);
+          _.each(['get', 'has', 'remove', 'set'], function (methodName) {
+            if (!_.has(storeService, methodName)) {
+              $log.error('Matching service is missing method: ', methodName);
+              return undefined;
+            }
+          });
+        }
+        return storeService;
+      };
+
       var authFunctions = {
         /**
          * returns true if there is a user profile in storage.
          */
         isAuthenticated: function () {
           if (this.isAuthCookieMissing()) {
-            if ($store.has(configuration.profileStorageKey)) {
+            if (storageService().has(configuration.profileStorageKey)) {
               // The cookie is absent or expired but we still have the profile stored.
               // Clear the profile and broadcast logout to ensure the app updates.
               this.logoutConfirmed();
             }
             return false;
           }
-          return $store.has(configuration.profileStorageKey);
+          return storageService().has(configuration.profileStorageKey);
         },
 
         /**
@@ -89,7 +110,7 @@
          * example if you need to pass through details of the user that was logged in.
          */
         loginConfirmed: function (data) {
-          $store.set(configuration.profileStorageKey, data);
+          storageService().set(configuration.profileStorageKey, data);
           configuration.reauthId = setInterval(configuration.reauthFunc, configuration.reauthTimeout);
           $rootScope.$broadcast('event:auth-loginConfirmed', data);
           if (_.isString(configuration.onLoginRedirectPath)) {
@@ -119,7 +140,7 @@
          * call this function to indicate that unauthentication was successful.
          */
         logoutConfirmed: function () {
-          $store.remove(configuration.profileStorageKey);
+          storageService().remove(configuration.profileStorageKey);
           $window.clearInterval(configuration.reauthId);
           configuration.reauthId = null;
           $rootScope.$broadcast('event:auth-logoutConfirmed');
@@ -156,10 +177,10 @@
          * call this function to retrieve the existing user profile from storage.
          */
         profile: function () {
-          var profile = $store.get(configuration.profileStorageKey);
+          var profile = storageService().get(configuration.profileStorageKey);
           if (_.isObject(profile)) {
             profile.$apply = function() {
-              $store.set(configuration.profileStorageKey, _.omit(this, '$apply'));
+              storageService().set(configuration.profileStorageKey, _.omit(this, '$apply'));
             };
           }
           return profile;
@@ -195,10 +216,10 @@
          */
         permit: function () {
           if (this.allowed.apply(this, _.toArray(arguments))) {
-            $store.remove('attemptedPath');
+            storageService().remove('attemptedPath');
             return;
           }
-          $store.set('attemptedPath', $location.path());
+          storageService().set('attemptedPath', $location.path());
           if (this.isAuthenticated()) {
             $location.path(configuration.notPermittedRedirectPath);
           } else {
@@ -210,7 +231,7 @@
          * Returns the path that the user attempts to access before being redirected.
          */
         getAttemptedPath: function () {
-          return $store.get('attemptedPath');
+          return storageService().get('attemptedPath');
         },
 
         /**

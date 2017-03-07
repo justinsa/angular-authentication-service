@@ -8,9 +8,7 @@ An authentication and authorization helper service for Angular client applicatio
 ##Dependencies
 
 * AngularJS - http://angularjs.org
-  * Angular Cookies - ngCookies
-  * angular-local-storage-service - [local.storage]((https://github.com/justinsa/angular-local-storage-service))
-* lodash
+* Lodash - http://lodash.com
 
 ##Basic Setup
 
@@ -18,10 +16,29 @@ An authentication and authorization helper service for Angular client applicatio
 ```JAVASCRIPT
 var app = angular.module('yourApp', ['authentication.service']);
 ```
-2. Inject $authentication as a parameter in declarations that require it:
+2. Configure a storage service to use with the authentication provider:
+```JAVASCRIPT
+app.config(['$authenticationProvider', function ($authenticationProvider) {
+  $authenticationProvider.configure({
+    storageService: '$store'
+  });
+}]);
+```
+3. Inject $authentication as a parameter in declarations that require it:
 ```JAVASCRIPT
 app.controller('yourController', function($scope, $authentication){ ... });
 ```
+
+The ng-authentication-service was designed in tandem with the following projects:
+
+* https://github.com/justinsa/angular-local-storage-service
+
+The injected storage service must support the following API:
+
+  1. ```get(key)```
+  2. ```has(key)```
+  3. ```remove(key)```
+  4. ```set(key, value)```
 
 ##Configuration Options
 
@@ -30,7 +47,8 @@ To override the default configuration options, configure the module with an opti
 ```JAVASCRIPT
 app.config(['$authenticationProvider', function ($authenticationProvider) {
   $authenticationProvider.configure({
-    authCookieKey: null,
+    storageService: undefined,
+    authCookieKey: undefined,
     profileStorageKey: 'user.profile',
     onLoginRedirectPath: '/',
     onLogoutRedirectPath: '/',

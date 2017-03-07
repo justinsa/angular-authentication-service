@@ -3,8 +3,9 @@
 
 describe('services', function () {
   beforeEach(
-    module('authentication.service', function ($authenticationProvider) {
+    module('authentication.service', 'local.storage', function ($authenticationProvider) {
       $authenticationProvider.configure({
+        storageService: '$store',
         onLoginRedirectPath: '/dashboard',
         onLogoutRedirectPath: '/home',
         notPermittedRedirectPath: '/notpermitted',
@@ -29,7 +30,8 @@ describe('services', function () {
           'isInAllRoles',
           'isInAnyRoles',
           'permit',
-          'getConfiguration'
+          'getConfiguration',
+          'reauth'
         ];
         for (var i in functions) {
           $authentication[functions[i]].should.be.a.function; // jshint ignore:line
@@ -40,7 +42,8 @@ describe('services', function () {
     it('should have an expected configuration',
       inject(function ($authentication) {
         var configuration = $authentication.getConfiguration();
-        (configuration.authCookieKey === null).should.be.true; // jshint ignore:line
+        configuration.storageService.should.match('$store');
+        (configuration.authCookieKey === undefined).should.be.true; // jshint ignore:line
         configuration.profileStorageKey.should.match('user.profile');
         configuration.onLoginRedirectPath.should.match('/dashboard');
         configuration.onLogoutRedirectPath.should.match('/home');
