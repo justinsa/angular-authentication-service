@@ -35,9 +35,11 @@
         return !_.isEmpty(userRoles) && !_.isEmpty(allowedRoles) &&
           (_.find(allowedRoles, function (role) { return _.includes(userRoles, role); }) !== undefined);
       },
-      reauthFunc: function () {},
-      reauthTimeout: 1200000,
-      reauthId: null
+      reauthentication: {
+        fn: function () {},
+        timeout: 1200000,
+        timer: undefined
+      }
     };
 
     this.configure = function (options) {
@@ -69,7 +71,7 @@
         return storeService;
       };
 
-      var authFunctions = {
+      return {
         /**
          * returns true if there is a user profile in storage.
          */
@@ -107,7 +109,7 @@
          */
         loginConfirmed: function (data) {
           storageService().set(configuration.profileStorageKey, data);
-          configuration.reauthId = setInterval(configuration.reauthFunc, configuration.reauthTimeout);
+          configuration.reauthentication.timer = setInterval(configuration.reauthentication.fn, configuration.reauthentication.timeout);
           $rootScope.$broadcast('event:auth-loginConfirmed', data);
           if (_.isString(configuration.onLoginRedirectPath)) {
             $location.path(configuration.onLoginRedirectPath);
@@ -137,8 +139,8 @@
          */
         logoutConfirmed: function () {
           storageService().remove(configuration.profileStorageKey);
-          $window.clearInterval(configuration.reauthId);
-          configuration.reauthId = null;
+          $window.clearInterval(configuration.reauthentication.timer);
+          configuration.reauthentication.timer = undefined;
           $rootScope.$broadcast('event:auth-logoutConfirmed');
           if (_.isString(configuration.onLogoutRedirectPath)) {
             $location.path(configuration.onLogoutRedirectPath);
@@ -240,15 +242,13 @@
         /**
          * call to re-authenticate, useful in token situations.
          */
-        reauth: function() {
-          if (authFunctions.isAuthenticated()) {
-            configuration.reauthFunc();
-            configuration.reauthId = setInterval(configuration.reauthFunc, configuration.reauthTimeout);
+        reauthenticate: function() {
+          if (this.isAuthenticated()) {
+            configuration.reauthentication.fn();
+            configuration.reauthentication.timer = setInterval(configuration.reauthentication.fn, configuration.reauthentication.timeout);
           }
         }
       };
-
-      return authFunctions;
     }];
   });
   return angular;

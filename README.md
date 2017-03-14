@@ -65,9 +65,11 @@ app.config(['$authenticationProvider', function ($authenticationProvider) {
       return !_.isEmpty(userRoles) && !_.isEmpty(allowedRoles) &&
         (_.find(allowedRoles, function (role) { return _.includes(userRoles, role); }) !== undefined);
     },
-    reauthFunc: function () {},
-    reauthTimeout: 1200000,
-    reauthId: null
+    reauthentication: {
+      fn: function () {},
+      timeout: 1200000,
+      timer: undefined
+    }
   });
 }]);
 ```
@@ -168,10 +170,10 @@ $authentication.getAttemptedPath();
 $authentication.getConfiguration();
 ```
 
-###reauth()
+###reauthenticate()
 ```JAVASCRIPT
-// Enable re-authentication via the configured reauthFunc at reauthTimeout intervals.
-$authentication.reauth();
+// Enable re-authentication via the configured reauthentication.fn at reauthentication.timeout intervals.
+$authentication.reauthenticate();
 ```
 
 ##Development

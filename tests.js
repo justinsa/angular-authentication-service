@@ -30,8 +30,9 @@ describe('services', function () {
           'isInAllRoles',
           'isInAnyRoles',
           'permit',
+          'getAttemptedPath',
           'getConfiguration',
-          'reauth'
+          'reauthenticate'
         ];
         for (var i in functions) {
           $authentication[functions[i]].should.be.a.function; // jshint ignore:line
@@ -536,14 +537,16 @@ describe('services', function () {
         });
       });
 
-      describe('reauth', function() {
+      describe('reauthenticate', function() {
         var $authentication, configuration, $store;
 
         beforeEach(module(function($authenticationProvider) {
           configuration = {
             profileStorageKey: 'foo',
-            reauthFunc: sinon.spy(),
-            reauthInterval: 100
+            reauthentication: {
+              fn: sinon.spy(),
+              timeoute: 100
+            }
           };
           $authenticationProvider.configure(configuration);
         }));
@@ -559,12 +562,12 @@ describe('services', function () {
           }));
 
           it('should not have a registered callback', function () {
-            (configuration.reauthId === null).should.be.true; // jshint ignore:line
+            (configuration.reauthentication.timer === undefined).should.be.true; // jshint ignore:line
           });
 
-          it('should not call reauthFunc if the user is not authenticated', function () {
-            $authentication.reauth();
-            configuration.reauthFunc.called.should.be.false; // jshint ignore:line
+          it('should not call reauthentication.fn if the user is not authenticated', function () {
+            $authentication.reauthenticate();
+            configuration.reauthentication.fn.called.should.be.false; // jshint ignore:line
           });
         });
 
@@ -573,15 +576,15 @@ describe('services', function () {
             $store.set('foo', 'not null');
           }));
 
-          it('should call reauthFunc if the user is authenticated', function () {
-            $authentication.reauth();
-            configuration.reauthFunc.called.should.be.true; // jshint ignore:line
+          it('should call reauthentication.fn if the user is authenticated', function () {
+            $authentication.reauthenticate();
+            configuration.reauthentication.fn.called.should.be.true; // jshint ignore:line
           });
 
           it('should register a callback', function () {
-            (configuration.reauthId === null).should.be.true; // jshint ignore:line
-            $authentication.reauth();
-            (configuration.reauthId !== null).should.be.true; // jshint ignore:line
+            (configuration.reauthentication.timer === undefined).should.be.true; // jshint ignore:line
+            $authentication.reauthenticate();
+            (configuration.reauthentication.timer !== undefined).should.be.true; // jshint ignore:line
           });
         });
 
@@ -591,11 +594,11 @@ describe('services', function () {
           }));
 
           it('should unregister the interval', function () {
-            (configuration.reauthId === null).should.be.true; // jshint ignore:line
-            $authentication.reauth();
-            (configuration.reauthId !== null).should.be.true; // jshint ignore:line
+            (configuration.reauthentication.timer === undefined).should.be.true; // jshint ignore:line
+            $authentication.reauthenticate();
+            (configuration.reauthentication.timer !== undefined).should.be.true; // jshint ignore:line
             $authentication.logoutConfirmed();
-            (configuration.reauthId === null).should.be.true; // jshint ignore:line
+            (configuration.reauthentication.timer === undefined).should.be.true; // jshint ignore:line
           });
         });
       });
