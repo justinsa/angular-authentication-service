@@ -16,7 +16,7 @@
   ],
   "homepage": "https://github.com/justinsa/angular-authentication-service",
   "license": "MIT",
-  "main": "./angular-authentication-service.js",
+  "main": "./ng-authentication-service.js",
   "ignore": [
     ".jshintrc",
     "gulpfile.js",

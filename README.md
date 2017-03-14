@@ -9,14 +9,23 @@ An authentication and authorization helper service for Angular client applicatio
 
 * AngularJS - http://angularjs.org
 * Lodash - http://lodash.com
+* ng-local-storage-service - https://github.com/justinsa/angular-local-storage-service
+
+The ng-authentication-service was designed in tandem with the ng-local-storage-service, but it is not a hard requirement. The configured storage service must support the following API:
+
+  1. ```mixed get(key)```
+  2. ```boolean has(key)```
+  3. ```void remove(key)```
+  4. ```void set(key, value)```
 
 ##Basic Setup
 
-1. Add this module to your app as a dependency:
+Add this module to your app as a dependency:
 ```JAVASCRIPT
 var app = angular.module('yourApp', ['authentication.service']);
 ```
-2. Configure a storage service to use with the authentication provider:
+
+Configure a storage service to use with the authentication provider:
 ```JAVASCRIPT
 app.config(['$authenticationProvider', function ($authenticationProvider) {
   $authenticationProvider.configure({
@@ -24,21 +33,11 @@ app.config(['$authenticationProvider', function ($authenticationProvider) {
   });
 }]);
 ```
-3. Inject $authentication as a parameter in declarations that require it:
+
+Inject $authentication as a parameter in declarations that require it:
 ```JAVASCRIPT
 app.controller('yourController', function($scope, $authentication){ ... });
 ```
-
-The ng-authentication-service was designed in tandem with the following projects:
-
-* https://github.com/justinsa/angular-local-storage-service
-
-The injected storage service must support the following API:
-
-  1. ```get(key)```
-  2. ```has(key)```
-  3. ```remove(key)```
-  4. ```set(key, value)```
 
 ##Configuration Options
 
@@ -47,8 +46,8 @@ To override the default configuration options, configure the module with an opti
 ```JAVASCRIPT
 app.config(['$authenticationProvider', function ($authenticationProvider) {
   $authenticationProvider.configure({
-    storageService: undefined,
     authCookieKey: undefined,
+    storageService: undefined,
     profileStorageKey: 'user.profile',
     onLoginRedirectPath: '/',
     onLogoutRedirectPath: '/',

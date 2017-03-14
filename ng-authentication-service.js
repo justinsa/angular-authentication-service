@@ -2,14 +2,10 @@
 (function (root, factory) {
   'use strict';
   if (typeof module !== 'undefined' && module.exports) {
-    if (typeof angular === 'undefined') {
-      factory(
-        typeof _ === 'undefined' ? require('lodash') : root._,
-        require('angular')
-      );
-    } else {
-      factory(root._, root.angular);
-    }
+    factory(
+      typeof _ === 'undefined' ? require('lodash') : root._,
+      typeof angular === 'undefined' ? require('angular') : root.angular
+    );
     module.exports = 'ng-authentication-service';
   } else if (typeof define === 'function' && define.amd) {
     define(['lodash', 'angular'], factory);
@@ -20,8 +16,8 @@
   'use strict';
   angular.module('authentication.service', []).provider('$authentication', function () {
     var configuration = {
-      storageService: undefined,
       authCookieKey: undefined,
+      storageService: undefined,
       profileStorageKey: 'user.profile',
       onLoginRedirectPath: '/',
       onLogoutRedirectPath: '/',
@@ -44,8 +40,8 @@
       reauthId: null
     };
 
-    this.configure = function (configurationOpts) {
-      configuration = _.defaults(configurationOpts, configuration);
+    this.configure = function (options) {
+      configuration = _.defaults(options, configuration);
     };
 
     this.$get = [
@@ -65,7 +61,7 @@
           storeService = $injector.get(configuration.storageService);
           _.each(['get', 'has', 'remove', 'set'], function (methodName) {
             if (!_.has(storeService, methodName)) {
-              $log.error('Matching service is missing method: ', methodName);
+              $log.error('storageService is missing method: ', methodName);
               return undefined;
             }
           });
@@ -242,7 +238,7 @@
         },
 
         /**
-         * call to reauthenticate, useful in token situations.
+         * call to re-authenticate, useful in token situations.
          */
         reauth: function() {
           if (authFunctions.isAuthenticated()) {

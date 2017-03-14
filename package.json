@@ -1,6 +1,6 @@
 {
   "name": "ng-authentication-service",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "author": "Justin Saunders (https://github.com/justinsa)",
   "contributors": [
     "Josh Mackey  (https://github.com/joshmackey)",
@@ -13,7 +13,6 @@
   },
   "devDependencies": {
     "angular": "*",
-    "angular-cookies": "*",
     "angular-mocks": "*",
     "gulp": "*",
     "gulp-jshint": "*",

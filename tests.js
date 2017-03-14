@@ -3,7 +3,7 @@
 
 describe('services', function () {
   beforeEach(
-    module('authentication.service', 'local.storage', function ($authenticationProvider) {
+    module('authentication.service', 'local-storage.service', function ($authenticationProvider) {
       $authenticationProvider.configure({
         storageService: '$store',
         onLoginRedirectPath: '/dashboard',
