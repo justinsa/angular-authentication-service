@@ -156,14 +156,6 @@ $authentication.isInAnyRoles('role1', 'role2', ...);
 $authentication.permit('role1', 'role2', ...);
 ```
 
-This function also stores the current ```$location.path()``` for redirecting to if the user is required to login again.
-
-###getAttemptedPath()
-```JAVASCRIPT
-// Return the last attempted path set by the permit call.
-$authentication.getAttemptedPath();
-```
-
 ###getConfiguration()
 ```JAVASCRIPT
 // Return the configuration object.

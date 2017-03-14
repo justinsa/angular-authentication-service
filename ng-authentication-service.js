@@ -213,23 +213,11 @@
          * call this function to determine if a user is permitted and redirect if not.
          */
         permit: function () {
-          if (this.allowed.apply(this, _.toArray(arguments))) {
-            storageService().remove('attemptedPath');
-            return;
+          if (!this.allowed.apply(this, _.toArray(arguments))) {
+            $location.path(
+              this.isAuthenticated() ? configuration.notPermittedRedirectPath : configuration.unauthenticatedRedirectPath
+            );
           }
-          storageService().set('attemptedPath', $location.path());
-          if (this.isAuthenticated()) {
-            $location.path(configuration.notPermittedRedirectPath);
-          } else {
-            $location.path(configuration.unauthenticatedRedirectPath);
-          }
-        },
-
-        /**
-         * Returns the path that the user attempts to access before being redirected.
-         */
-        getAttemptedPath: function () {
-          return storageService().get('attemptedPath');
         },
 
         /**
