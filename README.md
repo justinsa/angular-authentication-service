@@ -9,6 +9,9 @@ An authentication and authorization helper service for Angular client applicatio
 
 * AngularJS - http://angularjs.org
 * Lodash - http://lodash.com
+
+### Configurable Dependencies
+
 * ng-local-storage-service - https://github.com/justinsa/angular-local-storage-service
 
 The ng-authentication-service was designed in tandem with the ng-local-storage-service, but it is not a hard requirement. The configured storage service must support the following API:
