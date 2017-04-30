@@ -5,7 +5,7 @@
 
 An authentication and authorization helper service for Angular client applications.
 
-##Dependencies
+## Dependencies
 
 * AngularJS - http://angularjs.org
 * Lodash - http://lodash.com
@@ -18,7 +18,7 @@ The ng-authentication-service was designed in tandem with the ng-local-storage-s
   3. ```void remove(key)```
   4. ```void set(key, value)```
 
-##Basic Setup
+## Basic Setup
 
 Add this module to your app as a dependency:
 ```JAVASCRIPT
@@ -39,7 +39,7 @@ Inject $authentication as a parameter in declarations that require it:
 app.controller('yourController', function($scope, $authentication){ ... });
 ```
 
-##Configuration Options
+## Configuration Options
 
 To override the default configuration options, configure the module with an options argument during application configuration and provide overrides for any of the following options.
 
@@ -74,47 +74,48 @@ app.config(['$authenticationProvider', function ($authenticationProvider) {
 }]);
 ```
 
-##API
-###isAuthenticated()
+## API
+
+### isAuthenticated()
 ```JAVASCRIPT
 // Returns true if there is a user profile loaded in local storage, false otherwise.
 $authentication.isAuthenticated();
 ```
 
-###isAuthCookieMissing()
+### isAuthCookieMissing()
 ```JAVASCRIPT
 // Returns true if the authCookieKey is defined and no auth cookie is present, false otherwise.
 $authentication.isAuthCookieMissing();
 ```
 
-###loginConfirmed(data)
+### loginConfirmed(data)
 ```JAVASCRIPT
 // Store the profile (data) in local storage, notify all listeners of login, and redirect to onLoginRedirectPath if defined.
 $authentication.loginConfirmed({ ... });
 ```
 Broadcast via: ```event:auth-loginConfirmed``` with the ```data``` parameter as an argument.
 
-###checkAndBroadcastLoginConfirmed()
+### checkAndBroadcastLoginConfirmed()
 ```JAVASCRIPT
 // Check whether a user is logged in and broadcast the auth-loginConfirmed event, if so.
 $authentication.checkAndBroadcastLoginConfirmed();
 ```
 
-###loginRequired()
+### loginRequired()
 ```JAVASCRIPT
 // Notify all listeners that authentication is required.
 $authentication.loginRequired();
 ```
 Broadcast via: ```event:auth-loginRequired```.
 
-###logoutConfirmed()
+### logoutConfirmed()
 ```JAVASCRIPT
 // Remove any existing profile from local storage, notify all listeners of logout, and redirect to onLogoutRedirectPath if defined.
 $authentication.logoutConfirmed();
 ```
 Broadcast via: ```event:auth-logoutConfirmed```.
 
-###allowed(...)
+### allowed(...)
 ```JAVASCRIPT
 // Return true if the user is unauthenticated, false otherwise.
 $authentication.allowed('anonymous');
@@ -126,49 +127,49 @@ $authenticated.allowed('all');
 $authenticated.allowed('role1', 'role2', ...);
 ```
 
-###profile()
+### profile()
 ```JAVASCRIPT
 // Return the current user profile from local storage if it exists.
 $authentication.profile();
 ```
 
-###roles()
+### roles()
 ```JAVASCRIPT
 // Return the current collection of roles of the user profile from local storage if it exists.
 $authentication.roles();
 ```
 
-###isInAllRoles(...)
+### isInAllRoles(...)
 ```JAVASCRIPT
 // Return true if the current user profile is in all of the specified roles, false otherwise.
 $authentication.isInAllRoles('role1', 'role2', ...);
 ```
 
-###isInAnyRoles()
+### isInAnyRoles()
 ```JAVASCRIPT
 // Return true if the current user profile is in at least one of the specified roles, false otherwise.
 $authentication.isInAnyRoles('role1', 'role2', ...);
 ```
 
-###permit(...)
+### permit(...)
 ```JAVASCRIPT
 // Determine if the current user profile is allowed and redirect to either notPermittedRedirectPath or unauthenticatedRedirectPath if not.
 $authentication.permit('role1', 'role2', ...);
 ```
 
-###getConfiguration()
+### getConfiguration()
 ```JAVASCRIPT
 // Return the configuration object.
 $authentication.getConfiguration();
 ```
 
-###reauthenticate()
+### reauthenticate()
 ```JAVASCRIPT
 // Enable re-authentication via the configured reauthentication.fn at reauthentication.timeout intervals.
 $authentication.reauthenticate();
 ```
 
-##Development
+## Development
 After forking you should only have to run ```npm install``` from a command line to get your environment setup.
 
 After install you have two gulp commands available to you:
