@@ -292,6 +292,10 @@ describe('$authentication', function () {
         $authentication.allowed('y').should.be.false();
         $authentication.allowed('z').should.be.false();
       });
+
+      it('should return true if the roles are nested', function () {
+        $authentication.allowed('x', ['y', ['z', 'a']]).should.be.true();
+      });
     });
 
     describe('anonymous user', function () {
@@ -390,6 +394,10 @@ describe('$authentication', function () {
         $authentication.isInAllRoles('a').should.be.true();
         $authentication.isInAllRoles('a', 'b').should.be.true();
       });
+
+      it('should return true even if the roles are nested', function () {
+        $authentication.isInAllRoles('a', [['b']]).should.be.true();
+      });
     });
 
     describe('unauthenticated', function () {
@@ -432,6 +440,10 @@ describe('$authentication', function () {
       it('should return true if user has all of the roles', function () {
         $authentication.isInAnyRoles('a').should.be.true();
         $authentication.isInAnyRoles('a', 'b').should.be.true();
+      });
+
+      it('should return true even if the roles are nested', function () {
+        $authentication.isInAnyRoles('x', ['y', ['b']]).should.be.true();
       });
     });
 
@@ -516,6 +528,13 @@ describe('$authentication', function () {
         $location.path('/about');
         $location.path().should.match('/about');
         $authentication.permit('a', 'd', 'e');
+        $location.path().should.match('/about');
+      });
+
+      it('should work with nested roles', function () {
+        $location.path('/about');
+        $location.path().should.match('/about');
+        $authentication.permit('d', 'e', ['c']);
         $location.path().should.match('/about');
       });
     });

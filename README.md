@@ -131,6 +131,9 @@ $authenticated.allowed('all');
 
 // Return true if the configured validationFunction returns true, false otherwise.
 $authenticated.allowed('role1', 'role2', ...);
+
+// will flatten provided arrays that are any depth in the arguments list
+$authentication.allowed('X', ['Y', 'Z'], [['A']]) === $authentication.allowed('X', 'Y', 'Z', 'A')
 ```
 
 ### profile()
@@ -149,18 +152,27 @@ $authentication.roles();
 ```JAVASCRIPT
 // Return true if the current user profile is in all of the specified roles, false otherwise.
 $authentication.isInAllRoles('role1', 'role2', ...);
+
+// will flatten provided arrays that are any depth in the arguments list
+$authentication.isInAllRoles('X', ['Y', 'Z'], [['A']]) === $authentication.isInAllRoles('X', 'Y', 'Z', 'A')
 ```
 
 ### isInAnyRoles()
 ```JAVASCRIPT
 // Return true if the current user profile is in at least one of the specified roles, false otherwise.
 $authentication.isInAnyRoles('role1', 'role2', ...);
+
+// will flatten provided arrays that are any depth in the arguments list
+$authentication.isInAnyRoles('X', ['Y', 'Z'], [['A']]) === $authentication.isInAnyRoles('X', 'Y', 'Z', 'A')
 ```
 
 ### permit(...)
 ```JAVASCRIPT
 // Determine if the current user profile is allowed and redirect to either notPermittedRedirectPath or unauthenticatedRedirectPath if not.
 $authentication.permit('role1', 'role2', ...);
+
+// will flatten provided arrays that are any depth in the arguments list
+$authentication.permit('X', ['Y', 'Z'], [['A']]) === $authentication.permit('X', 'Y', 'Z', 'A')
 ```
 
 ### getConfiguration()

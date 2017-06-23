@@ -86,6 +86,9 @@
         }
         return storeService;
       };
+      var compact = function (array) {
+        return _.flattenDeep(array);
+      };
 
       return {
         /**
@@ -176,7 +179,7 @@
          * 'anonymous' is a special case role that will return true for an unauthenticated user.
          */
         allowed: function () {
-          var args = _.toArray(arguments);
+          var args = compact(arguments);
           var authenticated = this.isAuthenticated();
           // handle 'all' and 'anonymous' special cases
           if (args.length === 1 && _.isString(args[0])) {
@@ -218,7 +221,7 @@
          * call this function to determine if the user profile is in all of the specified roles.
          */
         isInAllRoles: function () {
-          var needles = _.toArray(arguments);
+          var needles = compact(arguments);
           var haystack = configuration.rolesFunction(this.profile());
           return needles.length > 0 && _.intersection(haystack, needles).length === needles.length;
         },
@@ -227,7 +230,7 @@
          * call this function to determine if the user profile is in any of the specified roles.
          */
         isInAnyRoles: function () {
-          var needles = _.toArray(arguments);
+          var needles = compact(arguments);
           var haystack = configuration.rolesFunction(this.profile());
           return _.intersection(haystack, needles).length > 0;
         },
@@ -236,7 +239,7 @@
          * call this function to determine if a user is permitted and redirect if not.
          */
         permit: function () {
-          if (!this.allowed.apply(this, _.toArray(arguments))) {
+          if (!this.allowed(arguments)) {
             $location.path(
               this.isAuthenticated() ? configuration.notPermittedRedirectPath : configuration.unauthenticatedRedirectPath
             );
