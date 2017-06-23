@@ -10,31 +10,11 @@ An authentication and authorization helper service for Angular client applicatio
 * AngularJS - http://angularjs.org
 * Lodash - http://lodash.com
 
-### Configurable Dependencies
-
-* ng-local-storage-service - https://github.com/justinsa/angular-local-storage-service
-
-The ng-authentication-service was designed in tandem with the ng-local-storage-service, but it is not a hard requirement. The configured storage service must support the following API:
-
-  1. ```mixed get(key)```
-  2. ```boolean has(key)```
-  3. ```void remove(key)```
-  4. ```void set(key, value)```
-
 ## Basic Setup
 
 Add this module to your app as a dependency:
 ```JAVASCRIPT
 var app = angular.module('yourApp', ['authentication.service']);
-```
-
-Configure a storage service to use with the authentication provider:
-```JAVASCRIPT
-app.config(['$authenticationProvider', function ($authenticationProvider) {
-  $authenticationProvider.configure({
-    storageService: '$store'
-  });
-}]);
 ```
 
 Inject $authentication as a parameter in declarations that require it:
@@ -76,6 +56,29 @@ app.config(['$authenticationProvider', function ($authenticationProvider) {
   });
 }]);
 ```
+
+### Storage Service Option
+
+If you do not provide a storage service then a simple, in-memory dictionary will be used.
+
+You can provide any storage service that supports the following API:
+
+  1. ```mixed get(key)```
+  2. ```boolean has(key)```
+  3. ```void remove(key)```
+  4. ```void set(key, value)```
+
+To configure a storage service for the authentication provider you provide the service name:
+
+```JAVASCRIPT
+app.config(['$authenticationProvider', function ($authenticationProvider) {
+  $authenticationProvider.configure({
+    storageService: '$store'
+  });
+}]);
+```
+
+The ng-authentication-service was designed in tandem with the [ng-local-storage-service](https://github.com/justinsa/angular-local-storage-service).
 
 ## API
 
@@ -164,6 +167,12 @@ $authentication.permit('role1', 'role2', ...);
 ```JAVASCRIPT
 // Return the configuration object.
 $authentication.getConfiguration();
+```
+
+### store()
+```JAVASCRIPT
+// Returns the configured storage service.
+$authentication.store();
 ```
 
 ### reauthenticate()

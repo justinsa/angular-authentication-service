@@ -53,8 +53,24 @@
       var storageService = function () {
         if (storeService === undefined) {
           if (!_.isString(configuration.storageService)) {
-            $log.error('No storageService configuration value provided');
-            return undefined;
+            // Use a simple, in-memory storage option
+            storeService = {
+              dictionary: {},
+              get: function (key) {
+                return this.dictionary[key];
+              },
+              has: function (key) {
+                return !_.isNil(this.get(key));
+              },
+              remove: function (key) {
+                delete this.dictionary[key];
+              },
+              set: function (key, value) {
+                this.dictionary[key] = value;
+                return this.dictionary[key];
+              }
+            };
+            return storeService;
           }
           if (!$injector.has(configuration.storageService)) {
             $log.error('No matching service registered in Angular: ', configuration.storageService);
@@ -96,7 +112,14 @@
             key += '=';
             var cookies = $document[0].cookie.split(';');
             return !_.some(cookies, function (cookie) {
-              return _.isString(cookie) && _.chain(cookie).trim().startsWith(key);
+              // A cookie is considered deleted in 2 cases:
+              //   1. the cookie does not exist
+              //   2. the cookie is set to no value
+              if (_.isString(cookie)) {
+                cookie = cookie.trim();
+                return _.startsWith(cookie, key) && cookie !== key;
+              }
+              return false;
             });
           }
           return false;
@@ -226,6 +249,11 @@
         getConfiguration: function () {
           return configuration;
         },
+
+        /**
+         * returns the configured storage service.
+         */
+        store: storageService,
 
         /**
          * call to re-authenticate, useful in token situations.
