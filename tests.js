@@ -1,4 +1,4 @@
-/* globals afterEach, beforeEach, describe, inject, it, sinon */
+/* globals _, afterEach, beforeEach, describe, inject, it, sinon */
 'use strict';
 describe('$authentication', function () {
   beforeEach(
@@ -6,8 +6,8 @@ describe('$authentication', function () {
       $authenticationProvider.configure({
         onLoginRedirectPath: '/dashboard',
         onLogoutRedirectPath: '/home',
-        notPermittedRedirectPath: '/notpermitted',
-        unauthenticatedRedirectPath: '/unauthenticated'
+        notAuthorizedRedirectPath: '/notpermitted',
+        notAuthenticatedRedirectPath: '/notauthenticated'
       });
     })
   );
@@ -17,6 +17,7 @@ describe('$authentication', function () {
       var functions = [
         'isAuthenticated',
         'isAuthCookieMissing',
+        'isProfileExpired',
         'checkAndBroadcastLoginConfirmed',
         'loginConfirmed',
         'loginRequired',
@@ -28,7 +29,12 @@ describe('$authentication', function () {
         'isInAnyRoles',
         'permit',
         'getConfiguration',
-        'reauthenticate'
+        'reauthenticate',
+        '$onLoginConfirmed',
+        '$onLoginRequired',
+        '$onLogoutConfirmed',
+        '$onNotAuthenticated',
+        '$onNotAuthorized'
       ];
       for (var i in functions) {
         $authentication[functions[i]].should.be.a.Function();
@@ -39,20 +45,25 @@ describe('$authentication', function () {
   it('should have an expected configuration',
     inject(function ($authentication) {
       var configuration = $authentication.getConfiguration();
-      (configuration.storageService === undefined).should.be.true();
-      (configuration.authCookieKey === undefined).should.be.true();
+      _.isUndefined(configuration.storageService).should.be.true();
+      _.isUndefined(configuration.authCookieKey).should.be.true();
       configuration.profileStorageKey.should.match('user.profile');
       configuration.onLoginRedirectPath.should.match('/dashboard');
       configuration.onLogoutRedirectPath.should.match('/home');
-      configuration.notPermittedRedirectPath.should.match('/notpermitted');
-      configuration.unauthenticatedRedirectPath.should.match('/unauthenticated');
+      configuration.notAuthorizedRedirectPath.should.match('/notpermitted');
+      configuration.notAuthenticatedRedirectPath.should.match('/notauthenticated');
       configuration.userRolesProperty.should.match('roles');
+      _.isUndefined(configuration.expirationProperty).should.be.true();
       configuration.rolesFunction.should.be.a.Function();
       configuration.validationFunction.should.be.a.Function();
+      configuration.reauthentication.should.be.an.Object();
+      configuration.reauthentication.fn.should.equal(_.noop);
+      configuration.reauthentication.timeout.should.equal(1200000);
+      _.isUndefined(configuration.reauthentication.timer).should.be.true();
     })
   );
 
-  describe('isAuthCookieMissing', function () {
+  describe('isAuthCookieMissing()', function () {
     afterEach(inject(function($document) {
       // Clear cookies
       $document[0].cookie = 'AUTH-COOKIE=;expires=Thu, 01 Jan 1970 00:00:00 GMT;';
@@ -108,7 +119,7 @@ describe('$authentication', function () {
     });
   });
 
-  describe('isAuthenticated', function () {
+  describe('isAuthenticated()', function () {
     it('should return true if user.profile is set in the store',
       inject(function ($authentication) {
         $authentication.store().set('user.profile', { roles: ['a', 'b', 'c'] });
@@ -124,6 +135,33 @@ describe('$authentication', function () {
       })
     );
 
+    describe('with an expiration property defined', function () {
+      it('should return true if the profile is not expired',
+        inject(function ($authentication) {
+          var futureDate = new Date();
+          futureDate.setDate(futureDate.getDate() + 1);
+          $authentication.getConfiguration().expirationProperty = 'expiration';
+          $authentication.getConfiguration().expirationProperty.should.equal('expiration');
+          $authentication.store().set('user.profile', { roles: ['a', 'b', 'c'], expiration: futureDate.toISOString() });
+          $authentication.isAuthenticated().should.be.true();
+        })
+      );
+
+      it('should return false if the profile is expired',
+        inject(function ($authentication, $rootScope) {
+          var pastDate = new Date();
+          pastDate.setDate(pastDate.getDate() - 1);
+          sinon.spy($rootScope, '$broadcast');
+          $authentication.getConfiguration().expirationProperty = 'expiration';
+          $authentication.getConfiguration().expirationProperty.should.equal('expiration');
+          $authentication.store().set('user.profile', { roles: ['a', 'b', 'c'], expiration: pastDate.toISOString() });
+          $authentication.isAuthenticated().should.be.false();
+          $rootScope.$broadcast.calledOnce.should.be.true();
+          $rootScope.$broadcast.calledWithExactly('event:auth-logoutConfirmed').should.be.true();
+        })
+      );
+    });
+    
     describe('with an auth cookie required', function () {
       beforeEach(function () {
         module('authentication.service', function ($authenticationProvider) {
@@ -173,7 +211,103 @@ describe('$authentication', function () {
     });
   });
 
-  describe('loginConfirmed', function () {
+  describe('isProfileExpired()', function () {
+    it('should return false if user.profile is not set and the expiration property is not set',
+      inject(function ($authentication) {
+        $authentication.store().remove('user.profile');
+        $authentication.isProfileExpired().should.be.false();
+      })
+    );
+
+    it('should return false if user.profile is not set and the expiration property is set',
+      inject(function ($authentication) {
+        $authentication.store().remove('user.profile');
+        $authentication.getConfiguration().expirationProperty = 'expiration';
+        $authentication.getConfiguration().expirationProperty.should.equal('expiration');
+        $authentication.isProfileExpired().should.be.false();
+      })
+    );
+
+    describe('with an existing profile and no matching expiration property', function () {
+      var $authentication;
+      beforeEach(
+        inject(function (_$authentication_) {
+          $authentication = _$authentication_;
+          $authentication.store().set('user.profile', { roles: ['a', 'b', 'c'] });
+        })
+      );
+
+      it('should return false if the expiration property is not set', function () {
+        _.isUndefined($authentication.getConfiguration().expirationProperty).should.be.true();
+        $authentication.isProfileExpired().should.be.false();
+      });
+
+      it('should return false if the expiration property is set to null', function () {
+        $authentication.getConfiguration().expirationProperty = null;
+        _.isNull($authentication.getConfiguration().expirationProperty).should.be.true();
+        $authentication.isProfileExpired().should.be.false();
+      });
+
+      it('should return false if the expiration property is set to a value that the profile does not have', function () {
+        $authentication.getConfiguration().expirationProperty = 'expiration';
+        $authentication.getConfiguration().expirationProperty.should.equal('expiration');
+        $authentication.isProfileExpired().should.be.false();
+      });
+    });
+
+    describe('with an existing profile and matching expiration property', function () {
+      var $authentication;
+      beforeEach(function () {
+        module('authentication.service', function ($authenticationProvider) {
+          $authenticationProvider.configure({
+            expirationProperty: 'expiration'
+          });
+        });
+      });
+      beforeEach(
+        inject(function (_$authentication_) {
+          $authentication = _$authentication_;
+        })
+      );
+
+      it('should return false if it is not set', function () {
+        $authentication.store().set('user.profile', { roles: ['a', 'b', 'c'], expiration: undefined });
+        $authentication.isProfileExpired().should.be.false();
+      });
+
+      it('should return false if it is null', function () {
+        $authentication.store().set('user.profile', { roles: ['a', 'b', 'c'], expiration: null });
+        $authentication.isProfileExpired().should.be.false();
+      });
+
+      it('should return false if it is not of a valid type', function () {
+        $authentication.store().set('user.profile', { roles: ['a', 'b', 'c'], expiration: {} });
+        $authentication.isProfileExpired().should.be.false();
+        $authentication.store().set('user.profile', { roles: ['a', 'b', 'c'], expiration: [] });
+        $authentication.isProfileExpired().should.be.false();
+        $authentication.store().set('user.profile', { roles: ['a', 'b', 'c'], expiration: true });
+        $authentication.isProfileExpired().should.be.false();
+        $authentication.store().set('user.profile', { roles: ['a', 'b', 'c'], expiration: 0 });
+        $authentication.isProfileExpired().should.be.false();
+      });
+
+      it('should return false if it is in the future', function () {
+        var futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 1);
+        $authentication.store().set('user.profile', { roles: ['a', 'b', 'c'], expiration: futureDate });
+        $authentication.isProfileExpired().should.be.false();
+      });
+
+      it('should return true if it is in the past', function () {
+        var pastDate = new Date();
+        pastDate.setDate(pastDate.getDate() - 1);
+        $authentication.store().set('user.profile', { roles: ['a', 'b', 'c'], expiration: pastDate });
+        $authentication.isProfileExpired().should.be.true();
+      });
+    });
+  });
+
+  describe('loginConfirmed()', function () {
     it('should broadcast auth-loginConfirmed when the user logs in',
       inject(function ($authentication, $rootScope) {
         sinon.spy($rootScope, '$broadcast');
@@ -212,7 +346,7 @@ describe('$authentication', function () {
     );
   });
 
-  describe('loginRequired', function () {
+  describe('loginRequired()', function () {
     it('should broadcast event:auth-loginRequired',
       inject(function ($authentication, $rootScope) {
         sinon.spy($rootScope, '$broadcast');
@@ -222,7 +356,7 @@ describe('$authentication', function () {
     );
   });
 
-  describe('logoutConfirmed', function () {
+  describe('logoutConfirmed()', function () {
     it('should broadcast event:auth-logoutConfirmed when the user logs out',
       inject(function ($authentication, $rootScope) {
         sinon.spy($rootScope, '$broadcast');
@@ -250,7 +384,7 @@ describe('$authentication', function () {
     );
   });
 
-  describe('profile', function () {
+  describe('profile()', function () {
     it('should return the profile',
       inject(function ($authentication) {
         $authentication.store().set('user.profile', 'foo');
@@ -259,7 +393,7 @@ describe('$authentication', function () {
     );
   });
 
-  describe('allowed call', function () {
+  describe('allowed()', function () {
     describe('authenticated user', function () {
       var $authentication;
       beforeEach(
@@ -325,7 +459,7 @@ describe('$authentication', function () {
     });
   });
 
-  describe('roles call', function () {
+  describe('roles()', function () {
     describe('authenticated with multiple roles', function () {
       var $authentication;
       beforeEach(
@@ -354,7 +488,7 @@ describe('$authentication', function () {
       });
     });
 
-    describe('unauthenticated', function () {
+    describe('notauthenticated', function () {
       var $authentication;
       beforeEach(
         inject(function (_$authentication_) {
@@ -369,7 +503,7 @@ describe('$authentication', function () {
     });
   });
 
-  describe('isInAllRoles call', function () {
+  describe('isInAllRoles()', function () {
     describe('authenticated', function () {
       var $authentication;
       beforeEach(
@@ -400,7 +534,7 @@ describe('$authentication', function () {
       });
     });
 
-    describe('unauthenticated', function () {
+    describe('not authenticated', function () {
       var $authentication;
       beforeEach(
         inject(function (_$authentication_) {
@@ -416,7 +550,7 @@ describe('$authentication', function () {
     });
   });
 
-  describe('isInAnyRoles call', function () {
+  describe('isInAnyRoles()', function () {
     describe('authenticated', function () {
       var $authentication;
       beforeEach(
@@ -447,7 +581,7 @@ describe('$authentication', function () {
       });
     });
 
-    describe('unauthenticated()', function () {
+    describe('not authenticated', function () {
       var $authentication;
       beforeEach(
         inject(function (_$authentication_) {
@@ -474,21 +608,21 @@ describe('$authentication', function () {
         })
       );
 
-      it('should navigate to the unauthenticated path if permission is ALL',
+      it('should navigate to the not authenticated path if permission is ALL',
         inject(function ($authentication, $location) {
           $location.path('/about');
           $location.path().should.match('/about');
           $authentication.permit('all');
-          $location.path().should.match('/unauthenticated');
+          $location.path().should.match('/notauthenticated');
         })
       );
 
-      it('should navigate to the unauthenticated path if permission is not ANONYMOUS',
+      it('should navigate to the not authenticated path if permission is not ANONYMOUS',
         inject(function ($authentication, $location) {
           $location.path('/about');
           $location.path().should.match('/about');
           $authentication.permit('a', 'b');
-          $location.path().should.match('/unauthenticated');
+          $location.path().should.match('/notauthenticated');
         })
       );
 

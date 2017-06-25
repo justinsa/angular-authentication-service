@@ -34,9 +34,10 @@ app.config(['$authenticationProvider', function ($authenticationProvider) {
     profileStorageKey: 'user.profile',
     onLoginRedirectPath: '/',
     onLogoutRedirectPath: '/',
-    notPermittedRedirectPath: '/',
-    unauthenticatedRedirectPath: '/',
+    notAuthorizedRedirectPath: '/',
+    notAuthenticatedRedirectPath: '/',
     userRolesProperty: 'roles',
+    expirationProperty: undefined,
     events: {
       loginConfirmed: 'event:auth-loginConfirmed',
       loginRequired: 'event:auth-loginRequired',
@@ -99,6 +100,12 @@ $authentication.isAuthenticated();
 ```JAVASCRIPT
 // Returns true if the authCookieKey is defined and no auth cookie is present, false otherwise.
 $authentication.isAuthCookieMissing();
+```
+
+### isProfileExpired()
+```JAVASCRIPT
+// Returns true if there is a user profile and it has an expiration value in the past, false otherwise.
+$authentication.isProfileExpired();
 ```
 
 ### loginConfirmed(data)
@@ -175,7 +182,7 @@ $authentication.isInAnyRoles('X', ['Y', 'Z'], [['A']]) === $authentication.isInA
 
 ### permit(...)
 ```JAVASCRIPT
-// Determine if the current user profile is allowed and redirect to either notPermittedRedirectPath or unauthenticatedRedirectPath if not.
+// Determine if the current user profile is allowed and redirect to either notAuthorizedRedirectPath or notAuthenticatedRedirectPath if not.
 $authentication.permit('role1', 'role2', ...);
 
 // will flatten provided arrays that are any depth in the arguments list

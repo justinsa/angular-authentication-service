@@ -21,9 +21,10 @@
       profileStorageKey: 'user.profile',
       onLoginRedirectPath: '/',
       onLogoutRedirectPath: '/',
-      notPermittedRedirectPath: '/',
-      unauthenticatedRedirectPath: '/',
+      notAuthorizedRedirectPath: '/',
+      notAuthenticatedRedirectPath: '/',
       userRolesProperty: 'roles',
+      expirationProperty: undefined,
       events: {
         loginConfirmed: 'event:auth-loginConfirmed',
         loginRequired: 'event:auth-loginRequired',
@@ -43,7 +44,7 @@
           (_.find(allowedRoles, function (role) { return _.includes(userRoles, role); }) !== undefined);
       },
       reauthentication: {
-        fn: function () {},
+        fn: _.noop,
         timeout: 1200000,
         timer: undefined
       }
@@ -96,21 +97,37 @@
       var compact = function (array) {
         return _.flattenDeep(array);
       };
+      var isExpired = function (expirationValue) {
+        var expirationDate;
+        if (_.isString(expirationValue)) {
+          expirationDate = Date.parse(expirationValue);
+        } else if (_.isDate(expirationValue)) {
+          expirationDate = expirationValue;
+        }
+        if (_.isNil(expirationDate)) {
+          // A null or undefined value for the expiration indicates the expiration is to be ignored.
+          // This indicates that either the expiration value is of an unexpected type or that while the
+          // configuration is defining the property for expiration, the application is not actually setting it.
+          return false;
+        }
+        return expirationDate < Date.now();
+      };
 
       return {
         /**
          * returns true if there is a user profile in storage.
          */
         isAuthenticated: function () {
-          if (this.isAuthCookieMissing()) {
-            if (storageService().has(configuration.profileStorageKey)) {
-              // The cookie is absent or expired but we still have the profile stored.
-              // Clear the profile and broadcast logout to ensure the app updates.
+          var hasProfile = storageService().has(configuration.profileStorageKey);
+          if (this.isAuthCookieMissing() || this.isProfileExpired()) {
+            if (hasProfile) {
+              // The profile exists and either it is expired or the cookie is absent / expired.
+              // Clear the profile and broadcast logout to ensure the app updates completely.
               this.logoutConfirmed();
+              hasProfile = false;
             }
-            return false;
           }
-          return storageService().has(configuration.profileStorageKey);
+          return hasProfile;
         },
 
         /**
@@ -133,6 +150,14 @@
             });
           }
           return false;
+        },
+
+        /**
+         * returns true if there is a user profile and it has an expiration value in the past.
+         */
+        isProfileExpired: function () {
+          var profile = this.profile();
+          return !_.isNil(profile) && isExpired(profile[configuration.expirationProperty]);
         },
 
         /**
@@ -168,7 +193,7 @@
         },
 
         /**
-         * call this function to indicate that unauthentication was successful.
+         * call this function to indicate that unauthentication is required.
          */
         logoutConfirmed: function () {
           storageService().remove(configuration.profileStorageKey);
@@ -241,10 +266,10 @@
          */
         permit: function () {
           if (!this.allowed(arguments)) {
-            var path = configuration.unauthenticatedRedirectPath,
+            var path = configuration.notAuthenticatedRedirectPath,
                 event = configuration.events.notAuthenticated;
             if (this.isAuthenticated()) {
-              path = configuration.notPermittedRedirectPath;
+              path = configuration.notAuthorizedRedirectPath;
               event = configuration.events.notAuthorized;
             }
             $location.path(path);
