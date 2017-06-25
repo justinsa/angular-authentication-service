@@ -27,7 +27,9 @@
       events: {
         loginConfirmed: 'event:auth-loginConfirmed',
         loginRequired: 'event:auth-loginRequired',
-        logoutConfirmed: 'event:auth-logoutConfirmed'
+        logoutConfirmed: 'event:auth-logoutConfirmed',
+        notAuthenticated: 'event:auth-notAuthenticated',
+        notAuthorized: 'event:auth-notAuthorized'
       },
       rolesFunction: function (userProfile) {
         if (_.has(userProfile, this.userRolesProperty)) {
@@ -239,9 +241,14 @@
          */
         permit: function () {
           if (!this.allowed(arguments)) {
-            $location.path(
-              this.isAuthenticated() ? configuration.notPermittedRedirectPath : configuration.unauthenticatedRedirectPath
-            );
+            var path = configuration.unauthenticatedRedirectPath,
+                event = configuration.events.notAuthenticated;
+            if (this.isAuthenticated()) {
+              path = configuration.notPermittedRedirectPath;
+              event = configuration.events.notAuthorized;
+            }
+            $location.path(path);
+            $rootScope.$broadcast(event, _.toArray(arguments));
           }
         },
 
@@ -286,6 +293,20 @@
          */
         $onLogoutConfirmed: function (handler) {
           $rootScope.$on(configuration.events.logoutConfirmed, handler);
+        },
+
+        /**
+         * sets handler as a listener to the event: 'event:auth-notAuthenticated'.
+         */
+        $onNotAuthenticated: function (handler) {
+          $rootScope.$on(configuration.events.notAuthenticated, handler);
+        },
+
+        /**
+         * sets handler as a listener to the event: 'event:auth-notAuthorized'.
+         */
+        $onNotAuthorized: function (handler) {
+          $rootScope.$on(configuration.events.notAuthorized, handler);
         }
       };
     }];

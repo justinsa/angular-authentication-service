@@ -40,7 +40,9 @@ app.config(['$authenticationProvider', function ($authenticationProvider) {
     events: {
       loginConfirmed: 'event:auth-loginConfirmed',
       loginRequired: 'event:auth-loginRequired',
-      logoutConfirmed: 'event:auth-logoutConfirmed'
+      logoutConfirmed: 'event:auth-logoutConfirmed',
+      notAuthenticated: 'event:auth-notAuthenticated',
+      notAuthorized: 'event:auth-notAuthorized'
     },
     rolesFunction: function (userProfile) {
       if (_.has(userProfile, this.userRolesProperty)) {
@@ -201,19 +203,34 @@ $authentication.reauthenticate();
 ### $onLoginConfirmed(handler)
 ```JAVASCRIPT
 // Sets the provided function handler as a listener to the event: 'event:auth-loginConfirmed'.
+// The event data is the data provided to the loginConfirmed call that triggered this event.
 $authentication.$onLoginConfirmed(function (event, data) { ... });
 ```
 
 ### $onLoginRequired(handler)
 ```JAVASCRIPT
 // Sets the provided function handler as a listener to the event: 'event:auth-loginRequired'.
-$authentication.$onLoginRequired(function (event, data) { ... });
+$authentication.$onLoginRequired(function (event) { ... });
 ```
 
 ### $onLogoutConfirmed(handler)
 ```JAVASCRIPT
 // Sets the provided function handler as a listener to the event: 'event:auth-logoutConfirmed'.
-$authentication.$onLogoutConfirmed(function (event, data) { ... });
+$authentication.$onLogoutConfirmed(function (event) { ... });
+```
+
+### $onNotAuthenticated(handler)
+```JAVASCRIPT
+// Sets the provided function handler as a listener to the event: 'event:auth-notAuthenticated'.
+// The event data is the array of arguments provided to the permit call that triggered this event.
+$authentication.$onNotAuthenticated(function (event, data) { ... });
+```
+
+### $onNotAuthorized(handler)
+```JAVASCRIPT
+// Sets the provided function handler as a listener to the event: 'event:auth-notAuthorized'.
+// The event data is the array of arguments provided to the permit call that triggered this event.
+$authentication.$onNotAuthorized(function (event, data) { ... });
 ```
 
 ## Development

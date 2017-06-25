@@ -447,7 +447,7 @@ describe('$authentication', function () {
       });
     });
 
-    describe('unauthenticated', function () {
+    describe('unauthenticated()', function () {
       var $authentication;
       beforeEach(
         inject(function (_$authentication_) {
@@ -463,7 +463,7 @@ describe('$authentication', function () {
     });
   });
 
-  describe('permit call', function () {
+  describe('permit()', function () {
     describe('with no authenticated user', function () {
       it('should stay on path if permission is ANONYMOUS',
         inject(function ($authentication, $location) {
@@ -489,6 +489,15 @@ describe('$authentication', function () {
           $location.path().should.match('/about');
           $authentication.permit('a', 'b');
           $location.path().should.match('/unauthenticated');
+        })
+      );
+
+      it('should broadcast a not authenticated event if user is not authenticated when required to be authenticated',
+        inject(function ($authentication, $rootScope) {
+          sinon.spy($rootScope, '$broadcast');
+          $authentication.permit('a', 'b');
+          $rootScope.$broadcast.calledOnce.should.be.true();
+          $rootScope.$broadcast.calledWithExactly('event:auth-notAuthenticated', ['a', 'b']).should.be.true();
         })
       );
     });
@@ -537,9 +546,18 @@ describe('$authentication', function () {
         $authentication.permit('d', 'e', ['c']);
         $location.path().should.match('/about');
       });
+
+      it('should broadcast a not authorized event if user is not authorized to access a location',
+        inject(function ($authentication, $rootScope) {
+          sinon.spy($rootScope, '$broadcast');
+          $authentication.permit('ANONYMOUS');
+          $rootScope.$broadcast.calledOnce.should.be.true();
+          $rootScope.$broadcast.calledWithExactly('event:auth-notAuthorized', ['ANONYMOUS']).should.be.true();
+        })
+      );
     });
 
-    describe('reauthenticate', function() {
+    describe('reauthenticate()', function() {
       var $authentication, configuration;
 
       beforeEach(module(function($authenticationProvider) {
