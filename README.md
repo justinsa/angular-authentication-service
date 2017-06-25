@@ -198,6 +198,24 @@ $authentication.store();
 $authentication.reauthenticate();
 ```
 
+### $onLoginConfirmed(handler)
+```JAVASCRIPT
+// Sets the provided function handler as a listener to the event: 'event:auth-loginConfirmed'.
+$authentication.$onLoginConfirmed(function (event, data) { ... });
+```
+
+### $onLoginRequired(handler)
+```JAVASCRIPT
+// Sets the provided function handler as a listener to the event: 'event:auth-loginRequired'.
+$authentication.$onLoginRequired(function (event, data) { ... });
+```
+
+### $onLogoutConfirmed(handler)
+```JAVASCRIPT
+// Sets the provided function handler as a listener to the event: 'event:auth-logoutConfirmed'.
+$authentication.$onLogoutConfirmed(function (event, data) { ... });
+```
+
 ## Development
 After forking you should only have to run ```npm install``` from a command line to get your environment setup.
 

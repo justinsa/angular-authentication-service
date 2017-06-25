@@ -260,11 +260,32 @@
         /**
          * call to re-authenticate, useful in token situations.
          */
-        reauthenticate: function() {
+        reauthenticate: function () {
           if (this.isAuthenticated()) {
             configuration.reauthentication.fn();
             configuration.reauthentication.timer = setInterval(configuration.reauthentication.fn, configuration.reauthentication.timeout);
           }
+        },
+
+        /**
+         * sets handler as a listener to the event: 'event:auth-loginConfirmed'.
+         */
+        $onLoginConfirmed: function (handler) {
+          $rootScope.$on(configuration.events.loginConfirmed, handler);
+        },
+
+        /**
+         * sets handler as a listener to the event: 'event:auth-loginRequired'.
+         */
+        $onLoginRequired: function (handler) {
+          $rootScope.$on(configuration.events.loginRequired, handler);
+        },
+
+        /**
+         * sets handler as a listener to the event: 'event:auth-logoutConfirmed'.
+         */
+        $onLogoutConfirmed: function (handler) {
+          $rootScope.$on(configuration.events.logoutConfirmed, handler);
         }
       };
     }];
