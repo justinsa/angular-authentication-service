@@ -37,6 +37,11 @@ app.config(['$authenticationProvider', function ($authenticationProvider) {
     notPermittedRedirectPath: '/',
     unauthenticatedRedirectPath: '/',
     userRolesProperty: 'roles',
+    events: {
+      loginConfirmed: 'event:auth-loginConfirmed',
+      loginRequired: 'event:auth-loginRequired',
+      logoutConfirmed: 'event:auth-logoutConfirmed'
+    },
     rolesFunction: function (userProfile) {
       if (_.has(userProfile, this.userRolesProperty)) {
         var roles = userProfile[this.userRolesProperty];

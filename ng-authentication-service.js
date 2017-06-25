@@ -24,6 +24,11 @@
       notPermittedRedirectPath: '/',
       unauthenticatedRedirectPath: '/',
       userRolesProperty: 'roles',
+      events: {
+        loginConfirmed: 'event:auth-loginConfirmed',
+        loginRequired: 'event:auth-loginRequired',
+        logoutConfirmed: 'event:auth-logoutConfirmed'
+      },
       rolesFunction: function (userProfile) {
         if (_.has(userProfile, this.userRolesProperty)) {
           var roles = userProfile[this.userRolesProperty];
@@ -136,7 +141,7 @@
         loginConfirmed: function (data) {
           storageService().set(configuration.profileStorageKey, data);
           configuration.reauthentication.timer = setInterval(configuration.reauthentication.fn, configuration.reauthentication.timeout);
-          $rootScope.$broadcast('event:auth-loginConfirmed', data);
+          $rootScope.$broadcast(configuration.events.loginConfirmed, data);
           if (_.isString(configuration.onLoginRedirectPath)) {
             $location.path(configuration.onLoginRedirectPath);
           }
@@ -149,7 +154,7 @@
          */
         checkAndBroadcastLoginConfirmed: function () {
           if (this.isAuthenticated()) {
-            $rootScope.$broadcast('event:auth-loginConfirmed', this.profile());
+            $rootScope.$broadcast(configuration.events.loginConfirmed, this.profile());
           }
         },
 
@@ -157,7 +162,7 @@
          * call this function to indicate that authentication is required.
          */
         loginRequired: function () {
-          $rootScope.$broadcast('event:auth-loginRequired');
+          $rootScope.$broadcast(configuration.events.loginRequired);
         },
 
         /**
@@ -167,7 +172,7 @@
           storageService().remove(configuration.profileStorageKey);
           $window.clearInterval(configuration.reauthentication.timer);
           configuration.reauthentication.timer = undefined;
-          $rootScope.$broadcast('event:auth-logoutConfirmed');
+          $rootScope.$broadcast(configuration.events.logoutConfirmed);
           if (_.isString(configuration.onLogoutRedirectPath)) {
             $location.path(configuration.onLogoutRedirectPath);
           }
@@ -201,13 +206,7 @@
          * call this function to retrieve the existing user profile from storage.
          */
         profile: function () {
-          var profile = storageService().get(configuration.profileStorageKey);
-          if (_.isObject(profile)) {
-            profile.$apply = function() {
-              storageService().set(configuration.profileStorageKey, _.omit(this, '$apply'));
-            };
-          }
-          return profile;
+          return storageService().get(configuration.profileStorageKey);
         },
 
         /**
