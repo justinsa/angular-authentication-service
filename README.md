@@ -31,11 +31,13 @@ app.config(['$authenticationProvider', function ($authenticationProvider) {
   $authenticationProvider.configure({
     authCookieKey: undefined,
     storageService: undefined,
-    profileStorageKey: 'user.profile',
-    onLoginRedirectPath: '/',
-    onLogoutRedirectPath: '/',
-    notAuthorizedRedirectPath: '/',
-    notAuthenticatedRedirectPath: '/',
+    profileStorageKey: '$authentication.user.profile',
+    lastAttemptedUrlStorageKey: '$authentication.last-attempted-url',
+    onLoginRedirectUrl: '/',
+    onLogoutRedirectUrl: '/',
+    notAuthorizedRedirectUrl: '/',
+    notAuthenticatedRedirectUrl: '/',
+    trackLastAttemptedUrl: true,
     userRolesProperty: 'roles',
     expirationProperty: undefined,
     events: {
@@ -110,7 +112,7 @@ $authentication.isProfileExpired();
 
 ### loginConfirmed(data)
 ```JAVASCRIPT
-// Store the profile (data) in local storage, notify all listeners of login, and redirect to onLoginRedirectPath if defined.
+// Store the profile (data) in local storage, notify all listeners of login, and redirect to onLoginRedirectUrl if defined.
 $authentication.loginConfirmed({ ... });
 ```
 Broadcast via: ```event:auth-loginConfirmed``` with the ```data``` parameter as an argument.
@@ -130,7 +132,7 @@ Broadcast via: ```event:auth-loginRequired```.
 
 ### logoutConfirmed()
 ```JAVASCRIPT
-// Remove any existing profile from local storage, notify all listeners of logout, and redirect to onLogoutRedirectPath if defined.
+// Remove any existing profile from local storage, notify all listeners of logout, and redirect to onLogoutRedirectUrl if defined.
 $authentication.logoutConfirmed();
 ```
 Broadcast via: ```event:auth-logoutConfirmed```.
@@ -152,8 +154,9 @@ $authentication.allowed('X', ['Y', 'Z'], [['A']]) === $authentication.allowed('X
 
 ### profile()
 ```JAVASCRIPT
-// Return the current user profile from local storage if it exists.
-$authentication.profile();
+// Get or set the current user profile from local storage.
+// If data is provided then it overwrites the existing user profile before returning it.
+$authentication.profile(data);
 ```
 
 ### roles()
@@ -182,7 +185,7 @@ $authentication.isInAnyRoles('X', ['Y', 'Z'], [['A']]) === $authentication.isInA
 
 ### permit(...)
 ```JAVASCRIPT
-// Determine if the current user profile is allowed and redirect to either notAuthorizedRedirectPath or notAuthenticatedRedirectPath if not.
+// Determine if the current user profile is allowed and redirect to either notAuthorizedRedirectUrl or notAuthenticatedRedirectUrl if not.
 $authentication.permit('role1', 'role2', ...);
 
 // will flatten provided arrays that are any depth in the arguments list
@@ -193,6 +196,12 @@ $authentication.permit('X', ['Y', 'Z'], [['A']]) === $authentication.permit('X',
 ```JAVASCRIPT
 // Return the configuration object.
 $authentication.getConfiguration();
+```
+
+### getLastAttemptedUrl()
+```JAVASCRIPT
+// Return the last attempted url value.
+$authentication.getLastAttemptedUrl();
 ```
 
 ### store()

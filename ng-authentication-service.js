@@ -18,11 +18,13 @@
     var configuration = {
       authCookieKey: undefined,
       storageService: undefined,
-      profileStorageKey: 'user.profile',
-      onLoginRedirectPath: '/',
-      onLogoutRedirectPath: '/',
-      notAuthorizedRedirectPath: '/',
-      notAuthenticatedRedirectPath: '/',
+      profileStorageKey: '$authentication.user-profile',
+      lastAttemptedUrlStorageKey: '$authentication.last-attempted-url',
+      onLoginRedirectUrl: '/',
+      onLogoutRedirectUrl: '/',
+      notAuthorizedRedirectUrl: '/',
+      notAuthenticatedRedirectUrl: '/',
+      trackLastAttemptedUrl: true,
       userRolesProperty: 'roles',
       expirationProperty: undefined,
       events: {
@@ -97,21 +99,6 @@
       var compact = function (array) {
         return _.flattenDeep(array);
       };
-      var isExpired = function (expirationValue) {
-        var expirationDate;
-        if (_.isString(expirationValue)) {
-          expirationDate = Date.parse(expirationValue);
-        } else if (_.isDate(expirationValue)) {
-          expirationDate = expirationValue;
-        }
-        if (_.isNil(expirationDate)) {
-          // A null or undefined value for the expiration indicates the expiration is to be ignored.
-          // This indicates that either the expiration value is of an unexpected type or that while the
-          // configuration is defining the property for expiration, the application is not actually setting it.
-          return false;
-        }
-        return expirationDate < Date.now();
-      };
 
       return {
         /**
@@ -156,8 +143,23 @@
          * returns true if there is a user profile and it has an expiration value in the past.
          */
         isProfileExpired: function () {
-          var profile = this.profile();
-          return !_.isNil(profile) && isExpired(profile[configuration.expirationProperty]);
+          var profile = this.profile(), expirationDate, expirationValue;
+          if (_.isNil(profile)) {
+            return false;
+          }
+          expirationValue = profile[configuration.expirationProperty];
+          if (_.isString(expirationValue)) {
+            expirationDate = Date.parse(expirationValue);
+          } else if (_.isDate(expirationValue)) {
+            expirationDate = expirationValue;
+          }
+          if (_.isNil(expirationDate)) {
+            // A null or undefined value for the expirationDate indicates the expiration is to be ignored;
+            // either the expiration value is of an unexpected type or that while the configuration is defining
+            // the property for expiration, the application is not actually setting it.
+            return false;
+          }
+          return expirationDate < Date.now();
         },
 
         /**
@@ -166,11 +168,15 @@
          * example if you need to pass through details of the user that was logged in.
          */
         loginConfirmed: function (data) {
+          var lastAttemptedUrl = this.getLastAttemptedUrl(),
+              loginRedirectUrl = configuration.onLoginRedirectUrl;
           storageService().set(configuration.profileStorageKey, data);
           configuration.reauthentication.timer = setInterval(configuration.reauthentication.fn, configuration.reauthentication.timeout);
           $rootScope.$broadcast(configuration.events.loginConfirmed, data);
-          if (_.isString(configuration.onLoginRedirectPath)) {
-            $location.path(configuration.onLoginRedirectPath);
+          if (configuration.trackLastAttemptedUrl === true && _.isString(lastAttemptedUrl)) {
+            $location.url(lastAttemptedUrl);
+          } else if (_.isString(loginRedirectUrl)) {
+            $location.url(loginRedirectUrl);
           }
         },
 
@@ -196,12 +202,14 @@
          * call this function to indicate that unauthentication is required.
          */
         logoutConfirmed: function () {
+          var logoutRedirectUrl = configuration.onLogoutRedirectUrl;
           storageService().remove(configuration.profileStorageKey);
+          storageService().remove(configuration.lastAttemptedUrlStorageKey);
           $window.clearInterval(configuration.reauthentication.timer);
           configuration.reauthentication.timer = undefined;
           $rootScope.$broadcast(configuration.events.logoutConfirmed);
-          if (_.isString(configuration.onLogoutRedirectPath)) {
-            $location.path(configuration.onLogoutRedirectPath);
+          if (_.isString(logoutRedirectUrl)) {
+            $location.url(logoutRedirectUrl);
           }
         },
 
@@ -230,9 +238,12 @@
         },
 
         /**
-         * call this function to retrieve the existing user profile from storage.
+         * call this function to get or set the existing user profile from storage.
          */
-        profile: function () {
+        profile: function (data) {
+          if (!_.isNil(data)) {
+            storageService().set(configuration.profileStorageKey, data);
+          }
           return storageService().get(configuration.profileStorageKey);
         },
 
@@ -266,13 +277,14 @@
          */
         permit: function () {
           if (!this.allowed(arguments)) {
-            var path = configuration.notAuthenticatedRedirectPath,
+            var url = configuration.notAuthenticatedRedirectUrl,
                 event = configuration.events.notAuthenticated;
             if (this.isAuthenticated()) {
-              path = configuration.notAuthorizedRedirectPath;
+              url = configuration.notAuthorizedRedirectUrl;
               event = configuration.events.notAuthorized;
             }
-            $location.path(path);
+            storageService().set(configuration.lastAttemptedUrlStorageKey, $location.url());
+            $location.url(url);
             $rootScope.$broadcast(event, _.toArray(arguments));
           }
         },
@@ -282,6 +294,13 @@
          */
         getConfiguration: function () {
           return configuration;
+        },
+
+        /**
+         * returns the last attempted url` value.
+         */
+        getLastAttemptedUrl: function () {
+          return storageService().get(configuration.lastAttemptedUrlStorageKey);
         },
 
         /**
