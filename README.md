@@ -204,9 +204,9 @@ $authentication.permit('X', ['Y', 'Z'], [['A']]) === $authentication.permit('X',
 $authentication.getConfiguration();
 ```
 
-### getLastAttemptedUrl()
+### getLastAttemptedUrl(fallback)
 ```JAVASCRIPT
-// Return the last attempted url value.
+// Return the last attempted url value, or fallback if value is undefined or tracking is disabled,.
 $authentication.getLastAttemptedUrl();
 ```
 
@@ -214,12 +214,6 @@ $authentication.getLastAttemptedUrl();
 ```JAVASCRIPT
 // Set and return the last attempted url value.
 $authentication.setLastAttemptedUrl();
-```
-
-### clearLastAttemptedUrl(fallback)
-```JAVASCRIPT
-// Return the last attempted url value, or fallback if tracking is disabled, and clear the value from storage.
-$authentication.clearLastAttemptedUrl();
 ```
 
 ### store()

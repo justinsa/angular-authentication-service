@@ -168,7 +168,7 @@
          * example if you need to pass through details of the user that was logged in.
          */
         loginConfirmed: function (data) {
-          var targetUrl = this.clearLastAttemptedUrl(configuration.onLoginRedirectUrl);
+          var targetUrl = this.getLastAttemptedUrl(configuration.onLoginRedirectUrl);
           storageService().set(configuration.profileStorageKey, data);
           configuration.reauthentication.timer = setInterval(configuration.reauthentication.fn, configuration.reauthentication.timeout);
           $rootScope.$broadcast(configuration.events.loginConfirmed, data);
@@ -199,7 +199,7 @@
          * call this function to indicate that unauthentication is required.
          */
         logoutConfirmed: function () {
-          var targetUrl = this.clearLastAttemptedUrl(configuration.onLogoutRedirectUrl);
+          var targetUrl = this.getLastAttemptedUrl(configuration.onLogoutRedirectUrl);
           storageService().remove(configuration.profileStorageKey);
           $window.clearInterval(configuration.reauthentication.timer);
           configuration.reauthentication.timer = undefined;
@@ -283,7 +283,6 @@
             $location.url(url);
             $rootScope.$broadcast(event, _.toArray(arguments));
           }
-          this.clearLastAttemptedUrl();
         },
 
         /**
@@ -294,10 +293,14 @@
         },
 
         /**
-         * returns the last attempted url value.
+         * returns the last attempted url value, or fallback if value is undefined or tracking is disabled,.
          */
-        getLastAttemptedUrl: function () {
-          return storageService().get(configuration.lastAttemptedUrlStorageKey);
+        getLastAttemptedUrl: function (fallback) {
+          var value = storageService().get(configuration.lastAttemptedUrlStorageKey);
+          if (configuration.trackLastAttemptedUrl !== true || !_.isString(value)) {
+            value = fallback;
+          }
+          return value;
         },
 
         /**
@@ -305,18 +308,6 @@
          */
         setLastAttemptedUrl: function (value) {
           return storageService().set(configuration.lastAttemptedUrlStorageKey, value);
-        },
-
-        /**
-         * returns the last attempted url value, or fallback if tracking is disabled, and clears the value from storage.
-         */
-        clearLastAttemptedUrl: function (fallback) {
-          var value = this.getLastAttemptedUrl();
-          if (configuration.trackLastAttemptedUrl !== true || !_.isString(value)) {
-            value = fallback;
-          }
-          storageService().remove(configuration.lastAttemptedUrlStorageKey);
-          return value;
         },
 
         /**
