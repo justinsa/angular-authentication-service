@@ -210,7 +210,13 @@ $authentication.getConfiguration();
 $authentication.getLastAttemptedUrl();
 ```
 
-### clearLastAttemptedUrl()
+### setLastAttemptedUrl(value)
+```JAVASCRIPT
+// Set and return the last attempted url value.
+$authentication.setLastAttemptedUrl();
+```
+
+### clearLastAttemptedUrl(fallback)
 ```JAVASCRIPT
 // Return the last attempted url value, or fallback if tracking is disabled, and clear the value from storage.
 $authentication.clearLastAttemptedUrl();

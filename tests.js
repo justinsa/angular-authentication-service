@@ -685,16 +685,6 @@ describe('$authentication', function () {
           $rootScope.$broadcast.calledWithExactly('event:auth-notAuthenticated', ['a', 'b']).should.be.true();
         })
       );
-
-      it('should store the last attempted url when the user gets redirected for authentication',
-        inject(function ($authentication, $location) {
-          $location.url('/about?a=b#anchor-tag');
-          $location.url().should.match('/about?a=b#anchor-tag');
-          $authentication.permit('a', 'b');
-          $location.url().should.match('/notauthenticated');
-          $authentication.getLastAttemptedUrl().should.equal('/about?a=b#anchor-tag');
-        })
-      );
     });
 
     describe('with an authenticated user', function () {

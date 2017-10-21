@@ -272,6 +272,7 @@
          * call this function to determine if a user is permitted and redirect if not.
          */
         permit: function () {
+          this.setLastAttemptedUrl($location.url());
           if (!this.allowed(arguments)) {
             var url = configuration.notAuthenticatedRedirectUrl,
                 event = configuration.events.notAuthenticated;
@@ -279,10 +280,10 @@
               url = configuration.notAuthorizedRedirectUrl;
               event = configuration.events.notAuthorized;
             }
-            storageService().set(configuration.lastAttemptedUrlStorageKey, $location.url());
             $location.url(url);
             $rootScope.$broadcast(event, _.toArray(arguments));
           }
+          this.clearLastAttemptedUrl();
         },
 
         /**
@@ -297,6 +298,13 @@
          */
         getLastAttemptedUrl: function () {
           return storageService().get(configuration.lastAttemptedUrlStorageKey);
+        },
+
+        /**
+         * Sets and returns the last attempted url value.
+         */
+        setLastAttemptedUrl: function (value) {
+          return storageService().set(configuration.lastAttemptedUrlStorageKey, value);
         },
 
         /**
