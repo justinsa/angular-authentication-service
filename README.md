@@ -112,7 +112,10 @@ $authentication.isProfileExpired();
 
 ### loginConfirmed(data)
 ```JAVASCRIPT
-// Store the profile (data) in local storage, notify all listeners of login, and redirect to onLoginRedirectUrl if defined.
+// Store the profile (data) in local storage, notify all listeners of login, and redirect to:
+//   1. lastAttemptedUrl if defined and trackLastAttemptedUrl is true
+//   2. onLoginRedirectUrl if defined
+//   3. do not redirect
 $authentication.loginConfirmed({ ... });
 ```
 Broadcast via: ```event:auth-loginConfirmed``` with the ```data``` parameter as an argument.
@@ -132,7 +135,10 @@ Broadcast via: ```event:auth-loginRequired```.
 
 ### logoutConfirmed()
 ```JAVASCRIPT
-// Remove any existing profile from local storage, notify all listeners of logout, and redirect to onLogoutRedirectUrl if defined.
+// Remove any existing profile from local storage, notify all listeners of logout, and redirect to:
+//   1. lastAttemptedUrl if defined and trackLastAttemptedUrl is true
+//   2. onLogoutRedirectUrl if defined
+//   3. do not redirect
 $authentication.logoutConfirmed();
 ```
 Broadcast via: ```event:auth-logoutConfirmed```.
@@ -202,6 +208,12 @@ $authentication.getConfiguration();
 ```JAVASCRIPT
 // Return the last attempted url value.
 $authentication.getLastAttemptedUrl();
+```
+
+### clearLastAttemptedUrl()
+```JAVASCRIPT
+// Return the last attempted url value, or fallback if tracking is disabled, and clear the value from storage.
+$authentication.clearLastAttemptedUrl();
 ```
 
 ### store()

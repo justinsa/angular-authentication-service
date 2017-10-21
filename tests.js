@@ -30,6 +30,7 @@ describe('$authentication', function () {
         'permit',
         'getConfiguration',
         'getLastAttemptedUrl',
+        'clearLastAttemptedUrl',
         'reauthenticate',
         '$onLoginConfirmed',
         '$onLoginRequired',
@@ -403,6 +404,31 @@ describe('$authentication', function () {
         $authentication.profile({ roles: ['a', 'b', 'c'] });
         $location.url('/dashboard/?a=b#anchor');
         $location.url().should.match('/dashboard/?a=b#anchor');
+        $authentication.logoutConfirmed();
+        $location.url().should.match('/home');
+      })
+    );
+
+    it('should navigate to the lastAttemptedUrl, if set, when the user logs out', 
+      inject(function ($authentication, $location) {
+        $location.url('/home');
+        $location.url().should.match('/home');
+        $authentication.profile({ roles: ['a', 'b', 'c'] });
+        $authentication.store().set($authentication.getConfiguration().lastAttemptedUrlStorageKey, '/last-attempted-url');
+        $authentication.getLastAttemptedUrl().should.equal('/last-attempted-url');
+        $authentication.logoutConfirmed();
+        $location.url().should.match('/last-attempted-url');
+      })
+    );
+
+    it('should navigate to the onLogoutRedirectUrl if trackLastAttemptedUrl is false when the user logs out', 
+      inject(function ($authentication, $location) {
+        $location.url('/dashboard');
+        $location.url().should.match('/dashboard');
+        $authentication.profile({ roles: ['a', 'b', 'c'] });
+        $authentication.store().set($authentication.getConfiguration().lastAttemptedUrlStorageKey, '/last-attempted-url');
+        $authentication.getLastAttemptedUrl().should.equal('/last-attempted-url');
+        $authentication.getConfiguration().trackLastAttemptedUrl = false;
         $authentication.logoutConfirmed();
         $location.url().should.match('/home');
       })
