@@ -110,7 +110,8 @@
             if (hasProfile) {
               // The profile exists and either it is expired or the cookie is absent / expired.
               // Clear the profile and broadcast logout to ensure the app updates completely.
-              this.logoutConfirmed();
+              // Set the doNotRedirect flag to prevent a $location change during logout.
+              this.logoutConfirmed(true);
               hasProfile = false;
             }
           }
@@ -197,14 +198,15 @@
 
         /**
          * call this function to indicate that unauthentication is required.
+         * @param doNotRedirect flag to indicate whether to skip logout redirection 
          */
-        logoutConfirmed: function () {
+        logoutConfirmed: function (doNotRedirect) {
           var targetUrl = this.getLastAttemptedUrl(configuration.onLogoutRedirectUrl);
           storageService().remove(configuration.profileStorageKey);
           $window.clearInterval(configuration.reauthentication.timer);
           configuration.reauthentication.timer = undefined;
           $rootScope.$broadcast(configuration.events.logoutConfirmed);
-          if (_.isString(targetUrl)) {
+          if (doNotRedirect !== true && _.isString(targetUrl)) {
             $location.url(targetUrl);
           }
         },
@@ -235,6 +237,7 @@
 
         /**
          * call this function to get or set the existing user profile from storage.
+         * @param data the user profile
          */
         profile: function (data) {
           if (!_.isNil(data)) {
@@ -293,7 +296,8 @@
         },
 
         /**
-         * returns the last attempted url value, or fallback if value is undefined or tracking is disabled,.
+         * returns the last attempted URL value, or fallback if value is undefined or tracking is disabled.
+         * @param fallback URL to fallback to if the last attempted URL is undefined or tracking is disabled
          */
         getLastAttemptedUrl: function (fallback) {
           var value = storageService().get(configuration.lastAttemptedUrlStorageKey);
@@ -305,6 +309,7 @@
 
         /**
          * Sets and returns the last attempted url value.
+         * @param value the value to set for the last attempted URL
          */
         setLastAttemptedUrl: function (value) {
           return storageService().set(configuration.lastAttemptedUrlStorageKey, value);
@@ -327,6 +332,7 @@
 
         /**
          * sets handler as a listener to the event: 'event:auth-loginConfirmed'.
+         * @param handler the event handler
          */
         $onLoginConfirmed: function (handler) {
           $rootScope.$on(configuration.events.loginConfirmed, handler);
@@ -334,6 +340,7 @@
 
         /**
          * sets handler as a listener to the event: 'event:auth-loginRequired'.
+         * @param handler the event handler
          */
         $onLoginRequired: function (handler) {
           $rootScope.$on(configuration.events.loginRequired, handler);
@@ -341,6 +348,7 @@
 
         /**
          * sets handler as a listener to the event: 'event:auth-logoutConfirmed'.
+         * @param handler the event handler
          */
         $onLogoutConfirmed: function (handler) {
           $rootScope.$on(configuration.events.logoutConfirmed, handler);
@@ -348,6 +356,7 @@
 
         /**
          * sets handler as a listener to the event: 'event:auth-notAuthenticated'.
+         * @param handler the event handler
          */
         $onNotAuthenticated: function (handler) {
           $rootScope.$on(configuration.events.notAuthenticated, handler);
@@ -355,6 +364,7 @@
 
         /**
          * sets handler as a listener to the event: 'event:auth-notAuthorized'.
+         * @param handler the event handler
          */
         $onNotAuthorized: function (handler) {
           $rootScope.$on(configuration.events.notAuthorized, handler);
