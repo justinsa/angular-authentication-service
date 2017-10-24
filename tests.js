@@ -433,6 +433,16 @@ describe('$authentication', function () {
         $location.url().should.match('/home');
       })
     );
+
+    it('should not navigate to any location when the doNotRedirect flag is true', 
+      inject(function ($authentication, $location) {
+        $authentication.profile({ roles: ['a', 'b', 'c'] });
+        $location.url('/dashboard/?a=b#anchor');
+        $location.url().should.match('/dashboard/?a=b#anchor');
+        $authentication.logoutConfirmed(true);
+        $location.url().should.match('/dashboard/?a=b#anchor');
+      })
+    );
   });
 
   describe('profile()', function () {
