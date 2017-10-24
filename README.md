@@ -133,12 +133,13 @@ $authentication.loginRequired();
 ```
 Broadcast via: ```event:auth-loginRequired```.
 
-### logoutConfirmed()
+### logoutConfirmed(doNotRedirect)
 ```JAVASCRIPT
 // Remove any existing profile from local storage, notify all listeners of logout, and redirect to:
-//   1. lastAttemptedUrl if defined and trackLastAttemptedUrl is true
-//   2. onLogoutRedirectUrl if defined
-//   3. do not redirect
+//   1. do not redirect if @doNotRedirect === true
+//   2. lastAttemptedUrl if defined and trackLastAttemptedUrl is true
+//   3. onLogoutRedirectUrl if defined
+//   4. do not redirect
 $authentication.logoutConfirmed();
 ```
 Broadcast via: ```event:auth-logoutConfirmed```.
