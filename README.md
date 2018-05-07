@@ -39,6 +39,7 @@ app.config(['$authenticationProvider', function ($authenticationProvider) {
     notAuthenticatedRedirectUrl: '/',
     trackLastAttemptedUrl: true,
     userRolesProperty: 'roles',
+    extensions: undefined,
     expirationProperty: undefined,
     events: {
       loginConfirmed: 'event:auth-loginConfirmed',
@@ -66,6 +67,10 @@ app.config(['$authenticationProvider', function ($authenticationProvider) {
   });
 }]);
 ```
+
+### Extensions
+
+All properties (own and inherited) of the extensions object will be available as native to the $authentication service API. The extensions object is applied using the [_.defaults(...)](https://lodash.com/docs/#defaults) method and cannot overwrite any of the existing API properties. This is intended to provide implementors with a way to add objects or functions that are application specific and should fall within the context of the authentication service to expose, e.g., functions to check if a profile has specific roles.
 
 ### Storage Service Option
 

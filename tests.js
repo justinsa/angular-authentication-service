@@ -67,6 +67,47 @@ describe('$authentication', function () {
     })
   );
 
+  describe('with extensions', function () {
+    beforeEach(function () {
+      module('authentication.service', function ($authenticationProvider) {
+        $authenticationProvider.configure({
+          extensions: {
+            key1: 'key1',
+            key2: function () {
+              return 'key2';
+            },
+            roles: 'OverWrittenRoles'
+          }
+        });
+      });
+    });
+
+    it('should expose the provided fields that do not conflict with the existing api',
+      inject(function ($authentication) {
+        $authentication.key1.should.equal('key1');
+        $authentication.key2.should.be.a.Function();
+        $authentication.key2().should.equal('key2');
+        $authentication.roles.should.be.a.Function();
+      })
+    );
+  });
+
+  describe('without extensions', function () {
+    beforeEach(function () {
+      module('authentication.service', function ($authenticationProvider) {
+        $authenticationProvider.configure({
+          authCookieKey: 'APIKEY'
+        });
+      });
+    });
+
+    it('should set extensions to undefined if not provided',
+      inject(function ($authentication) {
+        _.isNil($authentication.extensions).should.be.true();
+      })
+    );
+  });
+
   describe('isAuthCookieMissing()', function () {
     afterEach(inject(function($document) {
       // Clear cookies
@@ -165,7 +206,7 @@ describe('$authentication', function () {
         })
       );
     });
-    
+
     describe('with an auth cookie required', function () {
       beforeEach(function () {
         module('authentication.service', function ($authenticationProvider) {
@@ -319,7 +360,7 @@ describe('$authentication', function () {
       })
     );
 
-    it('should navigate to the onLoginRedirectUrl when the user logs in', 
+    it('should navigate to the onLoginRedirectUrl when the user logs in',
       inject(function ($authentication, $location) {
         $location.url('/home');
         $location.url().should.match('/home');
@@ -328,7 +369,7 @@ describe('$authentication', function () {
       })
     );
 
-    it('should navigate to the lastAttemptedUrl, if set, when the user logs in', 
+    it('should navigate to the lastAttemptedUrl, if set, when the user logs in',
       inject(function ($authentication, $location) {
         $location.url('/home');
         $location.url().should.match('/home');
@@ -339,7 +380,7 @@ describe('$authentication', function () {
       })
     );
 
-    it('should navigate to the onLoginRedirectUrl if trackLastAttemptedUrl is false when the user logs in', 
+    it('should navigate to the onLoginRedirectUrl if trackLastAttemptedUrl is false when the user logs in',
       inject(function ($authentication, $location) {
         $location.url('/home');
         $location.url().should.match('/home');
@@ -399,7 +440,7 @@ describe('$authentication', function () {
       })
     );
 
-    it('should navigate to the onLogoutRedirectUrl when the user logs out', 
+    it('should navigate to the onLogoutRedirectUrl when the user logs out',
       inject(function ($authentication, $location) {
         $authentication.profile({ roles: ['a', 'b', 'c'] });
         $location.url('/dashboard/?a=b#anchor');
@@ -409,7 +450,7 @@ describe('$authentication', function () {
       })
     );
 
-    it('should navigate to the lastAttemptedUrl, if set, when the user logs out', 
+    it('should navigate to the lastAttemptedUrl, if set, when the user logs out',
       inject(function ($authentication, $location) {
         $location.url('/home');
         $location.url().should.match('/home');
@@ -421,7 +462,7 @@ describe('$authentication', function () {
       })
     );
 
-    it('should navigate to the onLogoutRedirectUrl if trackLastAttemptedUrl is false when the user logs out', 
+    it('should navigate to the onLogoutRedirectUrl if trackLastAttemptedUrl is false when the user logs out',
       inject(function ($authentication, $location) {
         $location.url('/dashboard');
         $location.url().should.match('/dashboard');
@@ -434,7 +475,7 @@ describe('$authentication', function () {
       })
     );
 
-    it('should not navigate to any location when the doNotRedirect flag is true', 
+    it('should not navigate to any location when the doNotRedirect flag is true',
       inject(function ($authentication, $location) {
         $authentication.profile({ roles: ['a', 'b', 'c'] });
         $location.url('/dashboard/?a=b#anchor');

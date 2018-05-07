@@ -27,6 +27,7 @@
       trackLastAttemptedUrl: true,
       userRolesProperty: 'roles',
       expirationProperty: undefined,
+      extensions: undefined,
       events: {
         loginConfirmed: 'event:auth-loginConfirmed',
         loginRequired: 'event:auth-loginRequired',
@@ -100,7 +101,7 @@
         return _.flattenDeep(array);
       };
 
-      return {
+      var api = {
         /**
          * returns true if there is a user profile in storage.
          */
@@ -198,7 +199,7 @@
 
         /**
          * call this function to indicate that unauthentication is required.
-         * @param doNotRedirect flag to indicate whether to skip logout redirection 
+         * @param doNotRedirect flag to indicate whether to skip logout redirection
          */
         logoutConfirmed: function (doNotRedirect) {
           var targetUrl = this.getLastAttemptedUrl(configuration.onLogoutRedirectUrl);
@@ -370,6 +371,7 @@
           $rootScope.$on(configuration.events.notAuthorized, handler);
         }
       };
+      return _.defaults(api, configuration.extensions);
     }];
   });
   return angular;
