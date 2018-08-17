@@ -88,10 +88,9 @@
             return undefined;
           }
           storeService = $injector.get(configuration.storageService);
-          _.each(['get', 'has', 'remove', 'set'], function (methodName) {
-            if (!_.has(storeService, methodName)) {
-              $log.error('storageService is missing method: ', methodName);
-              return undefined;
+          _.each(['get', 'has', 'remove', 'set'], function (fnName) {
+            if (!_.hasIn(storeService, fnName) || !_.isFunction(storeService[fnName])) {
+              $log.error('storageService is missing function: ', fnName);
             }
           });
         }
