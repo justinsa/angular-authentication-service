@@ -67,6 +67,28 @@ describe('$authentication', function () {
     })
   );
 
+  describe('with object storageService', function () {
+    var storage = {
+      get: function () {},
+      has: function () {},
+      remove: function () {},
+      set: function () {},
+      test: function () { return 'test'; }
+    };
+
+    beforeEach(
+      module('authentication.service', function ($authenticationProvider) {
+        $authenticationProvider.configure({
+          storageService: storage
+        });
+      })
+    );
+
+    it('should use the provided storage object', inject(function ($authentication) {
+      $authentication.store().test().should.equal('test');
+    }));
+  });
+
   describe('with extensions', function () {
     beforeEach(function () {
       module('authentication.service', function ($authenticationProvider) {
@@ -82,7 +104,7 @@ describe('$authentication', function () {
       });
     });
 
-    it('should expose the provided fields that do not conflict with the existing api',
+    it('should expose the provided fields that do not conflict with the existing API',
       inject(function ($authentication) {
         $authentication.key1.should.equal('key1');
         $authentication.key2.should.be.a.Function();

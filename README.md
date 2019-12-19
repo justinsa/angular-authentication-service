@@ -76,9 +76,9 @@ All properties (own and inherited) of the extensions object will be available as
 
 If you do not provide a storage service then a simple, in-memory dictionary will be used.
 
-You can provide any storage service that supports the following API:
+You can provide any storage service or object that supports the following API:
 
-  1. ```mixed get(key)```
+  1. ```any get(key)```
   2. ```boolean has(key)```
   3. ```void remove(key)```
   4. ```void set(key, value)```
@@ -89,6 +89,16 @@ To configure a storage service for the authentication provider you provide the s
 app.config(['$authenticationProvider', function ($authenticationProvider) {
   $authenticationProvider.configure({
     storageService: '$store'
+  });
+}]);
+```
+
+or an object that provides the expected functionality:
+
+```JAVASCRIPT
+app.config(['$authenticationProvider', function ($authenticationProvider) {
+  $authenticationProvider.configure({
+    storageService: new CustomStorageService()
   });
 }]);
 ```

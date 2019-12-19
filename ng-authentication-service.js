@@ -63,7 +63,7 @@
       var storeService;
       var storageService = function () {
         if (storeService === undefined) {
-          if (!_.isString(configuration.storageService)) {
+          if (_.isNil(configuration.storageService)) {
             // Use a simple, in-memory storage option
             storeService = {
               dictionary: {},
@@ -82,12 +82,18 @@
               }
             };
             return storeService;
+          } else if (_.isString(configuration.storageService)) {
+            // Get the service from the $injector
+            if (!$injector.has(configuration.storageService)) {
+              $log.error('No matching service registered in Angular: ', configuration.storageService);
+              return undefined;
+            }
+            storeService = $injector.get(configuration.storageService);            
+          } else {
+            // The configuration object is the service
+            storeService = configuration.storageService;
           }
-          if (!$injector.has(configuration.storageService)) {
-            $log.error('No matching service registered in Angular: ', configuration.storageService);
-            return undefined;
-          }
-          storeService = $injector.get(configuration.storageService);
+
           _.each(['get', 'has', 'remove', 'set'], function (fnName) {
             if (!_.hasIn(storeService, fnName) || !_.isFunction(storeService[fnName])) {
               $log.error('storageService is missing function: ', fnName);
